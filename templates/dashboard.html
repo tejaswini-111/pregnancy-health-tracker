@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Pregnancy Care</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #fce4ec; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f8bbd0; padding-bottom: 15px; margin-bottom: 25px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .box { padding: 20px; border-radius: 15px; border: 1px solid #f8bbd0; background: #fff5f8; position: relative; }
+        .btn { display: inline-block; padding: 10px 20px; background: #ff69b4; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: 0.3s; text-align: center; }
+        .btn:hover { background: #ad1457; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; border: 1px solid #f8bbd0; text-align: left; }
+        th { background-color: #f8bbd0; color: #ad1457; }
+        .update-form { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #f8bbd0; display: flex; align-items: center; gap: 10px; }
+        input[type="date"], .search-input { padding: 8px; border: 1px solid #f8bbd0; border-radius: 5px; outline: none; }
+        
+        .faq-card { border: 1px solid #fce4ec; border-radius: 10px; padding: 15px; background: #fffafa; margin-bottom: 10px; }
+        .faq-cat { font-size: 0.7rem; background: #f8bbd0; color: #ad1457; padding: 2px 8px; border-radius: 5px; font-weight: bold; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1 style="color: #ad1457; margin: 0;">Hello, {{ user_name }}!</h1>
+        <a href="/logout" style="background: #f44336; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold;">Logout</a>
+    </div>
+
+    <div class="grid">
+        <div class="box">
+            <h3 style="color: #ad1457;">❤️ Health Tools</h3>
+            <p>Predict your pregnancy risk level using our Smart Analysis tool.</p>
+            <a href="/predict_page" class="btn">New Health Check</a>
+        </div>
+
+        <div class="box" style="background: #fffafa; border-left: 5px solid #ff69b4;">
+            <h3 style="margin-top:0; color: #ad1457;">👶 Pregnancy Tracker</h3>
+            <div style="background: white; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #fce4ec;">
+                <small style="color: #ad1457; font-weight: bold;">STATUS UPDATE</small>
+                <p style="margin: 5px 0; font-size: 0.9rem;">{{ upcoming_task }}</p>
+            </div>
+
+            {% if weeks > 0 %}
+            <a href="/details/{{ weeks }}" class="btn" style="width: 100%; box-sizing: border-box;">🔍 View Growth & Vaccine Details</a>
+            {% else %}
+            <button class="btn" style="width: 100%; opacity: 0.6; cursor: not-allowed;" disabled>Set Date to View Details</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 25px;">
+        <h2 style="color: #ad1457; margin-top: 0;">Journey Progress</h2>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span><strong>Week {{ weeks }}</strong> ({{ trimester }})</span>
+            <span>Due Date: <strong>{{ due_date }}</strong></span>
+        </div>
+        
+        <div style="background: #f3f4f6; border-radius: 10px; height: 18px; width: 100%; overflow: hidden;">
+            <div style="background: #ff69b4; height: 100%; width: {{ progress }}%; transition: width 1.5s;"></div>
+        </div>
+        
+        <div class="update-form">
+            <form action="/update_lmp" method="POST" style="display: flex; align-items: center; gap: 10px;">
+                <label style="font-size: 0.85rem; color: #ad1457; font-weight: bold;">Update Start Date (LMP):</label>
+                <input type="date" name="lmp_date" required>
+                <button type="submit" class="btn" style="padding: 8px 15px; font-size: 0.8rem; margin-top: 0;">Recalculate</button>
+            </form>
+        </div>
+    </div>
+
+    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 25px;">
+        <h2 style="color: #ad1457; margin-top: 0;">👩‍⚕️ Expert Q&A</h2>
+        
+        <form action="/dashboard" method="GET" style="margin-bottom: 20px; display: flex; gap: 10px;">
+            <input type="text" name="search" class="search-input" placeholder="Search FAQs (e.g. coffee, exercise)..." style="flex: 1;">
+            <button type="submit" class="btn">Search</button>
+        </form>
+
+        <div style="max-height: 400px; overflow-y: auto;">
+            {% for faq in faqs %}
+            <div class="faq-card">
+                <span class="faq-cat">{{ faq.category }}</span>
+                <p style="margin: 8px 0 5px 0; font-weight: bold; color: #ad1457;">Q: {{ faq.question }}</p>
+                <p style="margin: 0; color: #555; font-size: 0.9rem;"><strong>A:</strong> {{ faq.answer }}</p>
+            </div>
+            {% else %}
+            <p style="color: #991b1b; text-align: center;">No answers found. Try a different keyword!</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div style="background: #fff1f0; border: 1px solid #ffa39e; padding: 15px; border-radius: 10px; margin-bottom: 25px;">
+        <h4 style="color: #cf1322; margin: 0 0 10px 0;">⚠️ Danger Signs (Seek Help Immediately)</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; font-size: 0.85rem; color: #595959;">
+            <span>• Severe Headache</span>
+            <span>• Vaginal Bleeding</span>
+            <span>• Sudden Swelling</span>
+            <span>• Vision Changes</span>
+            <span>• Severe Abdominal Pain</span>
+            <span>• Less Baby Movement</span>
+        </div>
+    </div>
+
+    <h3 style="color: #ad1457;">Recent Health History</h3>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>BP (Systolic)</th>
+            <th>Sugar</th>
+            <th>Risk Level</th>
+        </tr>
+        {% for row in history %}
+        <tr>
+            <td>{{ row.check_date }}</td>
+            <td>{{ row.systolic }}</td>
+            <td>{{ row.sugar }}</td>
+            <td style="color: {% if row.risk_result == 'High Risk' %}red{% elif row.risk_result == 'Mid Risk' %}orange{% else %}green{% endif %}; font-weight: bold;">
+                {{ row.risk_result }}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+</body>
+</html>
