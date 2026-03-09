@@ -11,7 +11,7 @@ app.secret_key = 'pregnancy_care_key_2024'
 def get_db_connection():
     # PASTE YOUR "INTERNAL DATABASE URL" FROM RENDER BETWEEN THE QUOTES BELOW
     # It looks like: postgres://user:password@host/dbname
-    conn_url = "PASTE_YOUR_INTERNAL_DATABASE_URL_HERE"
+    conn_url = "postgresql://pregnancy_db_user:G5CAEMN1U0IB9dmRglAPCIQSkyFPnDKr@dpg-d6n76mdactks738gbif0-a/pregnancy_db"
     return psycopg2.connect(conn_url)
 
 @app.route('/')
@@ -245,3 +245,4 @@ if __name__ == '__main__':
     # Use the port Render provides, or default to 5000
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+
