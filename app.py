@@ -1,18 +1,18 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
+import os
 
 app = Flask(__name__)
 app.secret_key = 'pregnancy_care_key_2024'
 
 # --- DATABASE CONNECTION ---
 def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="", 
-        database="pregnancy_db"
-    )
+    # PASTE YOUR "INTERNAL DATABASE URL" FROM RENDER BETWEEN THE QUOTES BELOW
+    # It looks like: postgres://user:password@host/dbname
+    conn_url = "PASTE_YOUR_INTERNAL_DATABASE_URL_HERE"
+    return psycopg2.connect(conn_url)
 
 @app.route('/')
 def home():
@@ -36,10 +36,12 @@ def register():
         conn.close()
         return redirect(url_for('login_page'))
         
-    except mysql.connector.Error as err:
+    except psycopg2.Error as err:
+        conn.rollback()
         cursor.close()
         conn.close()
-        if err.errno == 1062:
+        # Check for unique violation (Email already exists)
+        if err.pgcode == '23505': 
             return f"""<div style="text-align:center; padding:50px; font-family:Arial; background:#fce4ec; height:100vh;">
                        <h2 style="color: #ad1457;">Email Already Registered</h2>
                        <a href="{url_for('login_page')}">Login instead</a></div>"""
@@ -55,17 +57,19 @@ def login():
     email = request.form['email']
     password = request.form['password']
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    # RealDictCursor makes results behave like a Python Dictionary
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
     user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
     if user:
         session['user_name'] = user['name']
-        cursor.close()
-        conn.close()
         return redirect(url_for('dashboard'))
     return "<h1>Invalid Login!</h1>"
 
-# --- 3. DASHBOARD (Cleaned) ---
+# --- 3. DASHBOARD ---
 @app.route('/dashboard')
 def dashboard():
     if 'user_name' not in session:
@@ -73,8 +77,7 @@ def dashboard():
 
     user_display_name = session.get('user_name')
     conn = get_db_connection()
-    # Buffered cursor prevents "Unread result found" errors
-    cursor = conn.cursor(dictionary=True, buffered=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     
     # --- 1. PREGNANCY TRACKING LOGIC ---
     cursor.execute("SELECT lmp_date FROM users WHERE name = %s", (user_display_name,))
@@ -97,20 +100,15 @@ def dashboard():
     cursor.execute("SELECT systolic, sugar, risk_result, check_date FROM health_checks ORDER BY check_date DESC LIMIT 5")
     history = cursor.fetchall()
 
-    # --- 3. NEW: EXPERT Q&A LOGIC ---
-    # Get the search term from the URL (if the user clicked 'Search')
+    # --- 3. EXPERT Q&A LOGIC ---
     search_query = request.args.get('search', '').strip()
-    
     if search_query:
-        # Search questions or categories that match the user's input
-        query = "SELECT * FROM faq WHERE question LIKE %s OR category LIKE %s"
+        query = "SELECT * FROM faq WHERE question ILIKE %s OR category ILIKE %s"
         cursor.execute(query, ('%' + search_query + '%', '%' + search_query + '%'))
     else:
-        # Default view: show 4 general questions
         cursor.execute("SELECT * FROM faq LIMIT 4")
     
     faqs = cursor.fetchall()
-    
     cursor.close()
     conn.close()
     
@@ -122,8 +120,9 @@ def dashboard():
                            progress=progress, 
                            upcoming_task=upcoming_task, 
                            history=history,
-                           faqs=faqs) # Added faqs to the template context
-# --- 4. VIEW DETAILS (VACCINATION & RECOMMENDATIONS MOVED HERE) ---
+                           faqs=faqs)
+
+# --- 4. VIEW DETAILS ---
 @app.route('/details/<int:week_num>')
 def week_details(week_num):
     if 'user_name' not in session:
@@ -131,9 +130,8 @@ def week_details(week_num):
 
     user_display_name = session.get('user_name')
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True, buffered=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    # 1. Trimester & Recommendation Logic
     if week_num <= 12:
         recom = "Focus on Folic Acid (Spinach, Beans) for neural development."
         trimester = "1st Trimester"
@@ -144,7 +142,6 @@ def week_details(week_num):
         recom = "Eat smaller, frequent meals as the baby takes up more space."
         trimester = "3rd Trimester"
 
-    # 2. Baby Growth Data
     baby_growth_details = {
         0: {"size": "Poppy Seed", "desc": "Cells are dividing rapidly."},
         8: {"size": "Raspberry", "desc": "Baby's heart is beating strongly!"},
@@ -160,17 +157,13 @@ def week_details(week_num):
             current_info = baby_growth_details[w]
             break
 
-    # 3. Vaccination Logic
-    # 3. Vaccination Logic
-    # 3. Vaccination Logic
     vaccine_master_list = [
         (12, "TT 1", "Tetanus Toxoid 1st dose"),
         (16, "TT 2", "Tetanus Toxoid 2nd dose"),
-        (20, "Flu Shot", "Seasonal Influenza Protection"), # Fixed at Week 20
+        (20, "Flu Shot", "Seasonal Influenza Protection"),
         (28, "Tdap", "Pertussis & Tetanus Booster")
     ]
 
-    # CHANGED: Added 'week_at_completion' to the filter
     cursor.execute("""
         SELECT vaccine_name FROM user_vaccines 
         WHERE user_name = %s AND week_at_completion = %s
@@ -180,21 +173,13 @@ def week_details(week_num):
 
     vaccines_status = []
     for v_week, name, desc in vaccine_master_list:
-        # Check if the vaccine is for the CURRENT week being viewed
         if v_week == week_num:
             status = "Done" if name in done_vaccines else "Pending"
-            
-            # Logic for color coding/status
-            if status == "Pending" and week_num > v_week: 
-                status = "Overdue"
-            
             vaccines_status.append({'week': v_week, 'name': name, 'desc': desc, 'status': status})
-    # 4. Clean up Database Connection
+
     cursor.close()
     conn.close()
 
-    # 5. RENDER THE TEMPLATE (One return to rule them all)
-    # Ensure recommendation variable matches recom in HTML
     return render_template('details.html', 
                            week=week_num, 
                            info=current_info, 
@@ -205,27 +190,20 @@ def week_details(week_num):
 # --- 5. MARK VACCINE DONE ---
 @app.route('/complete_vaccine/<vaccine_name>/<int:week_num>')
 def complete_vaccine(vaccine_name, week_num):
-    if 'user_name' not in session: 
-        return redirect(url_for('login_page'))
-    
+    if 'user_name' not in session: return redirect(url_for('login_page'))
     user_name = session.get('user_name')
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    # Updated query to include the week_at_completion column
     query = """INSERT INTO user_vaccines 
                (user_name, vaccine_name, status, completed_at, week_at_completion) 
                VALUES (%s, %s, 'Done', NOW(), %s)"""
-    
     cursor.execute(query, (user_name, vaccine_name, week_num))
-    
     conn.commit()
     cursor.close()
     conn.close()
-    
     return redirect(url_for('week_details', week_num=week_num))
 
-# --- 6. OTHER ROUTES (LMP, Predict, Ask Expert, Logout) ---
+# --- 6. OTHER ROUTES ---
 @app.route('/update_lmp', methods=['POST'])
 def update_lmp():
     if 'user_name' not in session: return redirect(url_for('login_page'))
@@ -245,11 +223,9 @@ def predict_page():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Make sure to handle potential session needs here if required
     age = int(request.form['age'])
     systolic = int(request.form['systolic'])
     sugar = float(request.form['sugar'])
-    
     result, color = ("High Risk", "red") if systolic > 140 or sugar > 10.0 else ("Mid Risk", "orange") if systolic > 120 or sugar > 8.0 else ("Low Risk", "green")
     
     conn = get_db_connection()
@@ -260,29 +236,12 @@ def predict():
     conn.close()
     return f"""<div style="text-align:center; padding:50px; background:#fce4ec; height:100vh;"><h1 style='color:{color}'>{result}</h1><a href='/dashboard' style="padding:10px 20px; background:#ff69b4; color:white; text-decoration:none; border-radius:5px;">Return to Dashboard</a></div>"""
 
-@app.route('/ask_expert', methods=['POST'])
-def ask_expert():
-    if 'user_name' not in session:
-        return redirect(url_for('login_page'))
-    
-    user_name = session.get('user_name')
-    question = request.form.get('user_question')
-    
-    if question:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO user_questions (user_name, question) VALUES (%s, %s)", 
-                       (user_name, question))
-        conn.commit()
-        cursor.close()
-        conn.close()
-    
-    return redirect(url_for('dashboard'))
-
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login_page')) # Changed from 'home' to 'login_page' if home doesn't exist
+    return redirect(url_for('login_page'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Use the port Render provides, or default to 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
