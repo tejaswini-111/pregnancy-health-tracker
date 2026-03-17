@@ -9,16 +9,18 @@ app.secret_key = 'pregnancy_care_key_2024'
 
 # --- DATABASE CONNECTION ---
 def get_db_connection():
-    # This uses your specific Render Database URL
+    # Using your specific Render Database URL
+    # Note: Ensure the 'postgresql://' prefix is used for SQLAlchemy/Psycopg2 compatibility
     conn_url = "postgresql://pregnancy_db_user:G5CAEMN1U0IB9dmRglAPCIQSkyFPnDKr@dpg-d6n76mdactks738gbif0-a/pregnancy_db"
     return psycopg2.connect(conn_url)
 
-# --- AUTOMATIC TABLE CREATOR ---
-# This runs every time the app starts to ensure your database is ready
+# --- DATABASE INITIALIZATION & FAQ SEEDING ---
 def create_tables():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # 1. Create all necessary tables
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY, 
@@ -27,6 +29,7 @@ def create_tables():
                 password VARCHAR(100), 
                 lmp_date DATE
             );
+            
             CREATE TABLE IF NOT EXISTS health_checks (
                 id SERIAL PRIMARY KEY, 
                 age INTEGER, 
@@ -35,6 +38,7 @@ def create_tables():
                 risk_result VARCHAR(50), 
                 check_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+            
             CREATE TABLE IF NOT EXISTS user_vaccines (
                 id SERIAL PRIMARY KEY, 
                 user_name VARCHAR(100), 
@@ -43,6 +47,7 @@ def create_tables():
                 completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
                 week_at_completion INTEGER
             );
+            
             CREATE TABLE IF NOT EXISTS faq (
                 id SERIAL PRIMARY KEY, 
                 question TEXT, 
@@ -50,6 +55,21 @@ def create_tables():
                 category VARCHAR(100)
             );
         """)
+
+        # 2. Seed FAQ data if table is empty
+        cursor.execute("SELECT COUNT(*) FROM faq")
+        if cursor.fetchone()[0] == 0:
+            print("Seeding FAQ data...")
+            faqs = [
+                ("What is the TT vaccine?", "The Tetanus Toxoid (TT) vaccine protects both the mother and the newborn from tetanus infection.", "Vaccination"),
+                ("When should I take the first TT dose?", "The first dose is usually given around week 12-16 of pregnancy.", "Vaccination"),
+                ("What is a healthy blood sugar level?", "Fasting blood sugar should generally be below 95 mg/dL during pregnancy.", "Health"),
+                ("What does 'High Risk' mean?", "A High Risk result suggests elevated blood pressure or sugar. Consult your doctor immediately.", "Guideline"),
+                ("Why is Folic Acid important?", "It helps in the early development of the baby's brain and spinal cord.", "Nutrition")
+            ]
+            for q, a, c in faqs:
+                cursor.execute("INSERT INTO faq (question, answer, category) VALUES (%s, %s, %s)", (q, a, c))
+        
         conn.commit()
         cursor.close()
         conn.close()
@@ -57,7 +77,7 @@ def create_tables():
     except Exception as e:
         print(f"Error initializing database: {e}")
 
-# Run the creator
+# Run the initialization
 create_tables()
 
 @app.route('/')
@@ -73,10 +93,8 @@ def register():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    
     try:
-        query = "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)"
-        cursor.execute(query, (name, email, password))
+        cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", (name, email, password))
         conn.commit()
         return redirect(url_for('login_page'))
     except psycopg2.Error as err:
@@ -171,15 +189,8 @@ def week_details(week_num):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    if week_num <= 12:
-        recom = "Focus on Folic Acid (Spinach, Beans) for neural development."
-        trimester = "1st Trimester"
-    elif week_num <= 26:
-        recom = "Increase Iron and Calcium intake for growing bones."
-        trimester = "2nd Trimester"
-    else:
-        recom = "Eat smaller, frequent meals as the baby takes up more space."
-        trimester = "3rd Trimester"
+    recom = "Focus on Folic Acid for neural development." if week_num <= 12 else "Increase Iron and Calcium intake." if week_num <= 26 else "Eat smaller, frequent meals."
+    trimester = "1st Trimester" if week_num <= 12 else "2nd Trimester" if week_num <= 26 else "3rd Trimester"
 
     baby_growth_details = {
         0: {"size": "Poppy Seed", "desc": "Cells are dividing rapidly."},
