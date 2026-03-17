@@ -2,5 +2,5 @@ Flask
 psycopg2-binary
 gunicorn
 pandas
-scikit-learn==1.6.1
-scipy==1.13.1﻿
+scikit-learn
+scipy
