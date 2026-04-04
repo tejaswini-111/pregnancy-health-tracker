@@ -1,4 +1,4 @@
-# Maternal Health & Vaccination Guidance System 🩺🤰
+# Smart Pregnancy Care And Vaccination Guide 🩺🤰
 
 A full-stack web application developed for my academic thesis to track pregnancy progress and predict health risks.
 
