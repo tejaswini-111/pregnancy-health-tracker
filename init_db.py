@@ -1,7 +1,7 @@
 import psycopg2
 
 # PASTE YOUR EXTERNAL DATABASE URL FROM RENDER BELOW
-DB_URL = "postgresql://pregnancy_db_user:G5CAEMN1U0IB9dmRglAPCIQSkyFPnDKr@dpg-d6n76mdactks738gbif0-a.oregon-postgres.render.com/pregnancy_db"
+DB_URL = os.environ.get('DATABASE_URL')
 def setup_database():
     try:
         conn = psycopg2.connect(DB_URL)
