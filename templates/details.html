@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
 <head>
@@ -97,4 +98,105 @@
 </div>
 
 </body>
+=======
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Week {{ week }} Details</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #fce4ec; padding: 20px; }
+        .card { background: white; max-width: 700px; margin: auto; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2, h3 { color: #ad1457; }
+        .section { margin-bottom: 25px; padding: 15px; border-radius: 10px; border: 1px solid #fce4ec; }
+        
+        /* Growth Visual Style */
+        .growth-visual { text-align: center; background: #fff5f8; padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px dashed #f8bbd0; }
+        .fruit-icon { font-size: 4rem; margin-bottom: 10px; display: block; }
+        
+        .recom-box { background: #f0fdf4; border-left: 5px solid #22c55e; padding: 15px; color: #166534; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 10px; border: 1px solid #f8bbd0; text-align: left; }
+        th { background: #f8bbd0; color: #ad1457; }
+        .badge { padding: 3px 8px; border-radius: 5px; font-weight: bold; font-size: 0.8rem; }
+        .done { background: #dcfce7; color: #166534; }
+        .overdue { background: #fee2e2; color: #991b1b; }
+        .pending { background: #fef3c7; color: #92400e; }
+        .btn-back { display: inline-block; margin-top: 20px; text-decoration: none; color: #ad1457; font-weight: bold; transition: 0.3s; }
+        .btn-back:hover { color: #ff69b4; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="margin-bottom: 5px;">Week {{ week }} Analysis</h2>
+        <span style="background: #f8bbd0; color: #ad1457; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">
+            {{ trimester }}
+        </span>
+    </div>
+
+    <div class="growth-visual">
+        <span class="fruit-icon">
+            {% if week < 8 %} 🌱 {% elif week < 12 %} 🍓 {% elif week < 20 %} 🍋 {% elif week < 30 %} 🍐 {% else %} 👶 {% endif %}
+        </span>
+        <h3 style="margin: 0;">Baby is the size of a {{ info.size }}</h3>
+        <p style="color: #666; font-style: italic; margin-top: 10px;">"{{ info.desc }}"</p>
+    </div>
+
+    
+
+    <div class="section recom-box">
+        <strong>🍎 Nutrition & Health Tip:</strong>
+        <p style="margin: 5px 0 0 0;">{{ recom }}</p>
+    </div>
+
+    <div class="section">
+    <h3>💉 Vaccination Tracker</h3>
+    <table border="1" style="width: 100%; border-collapse: collapse; text-align: left;">
+        <tr>
+            <th>Vaccine</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        {% if vaccines %}
+            {% for v in vaccines %}
+            <tr>
+                <td>
+                    {{ v.name }} <br>
+                    <small style="color: #666;">{{ v.desc }} (Due: Week {{ v.week }})</small>
+                </td>
+                <td>
+                    <span class="badge {{ v.status.lower() }}">{{ v.status }}</span>
+                </td>
+                <td>
+                    {% if v.status == 'Done' %}
+                        <span style="color: green;">✅ Completed</span>
+                    {% elif v.week == week %} 
+                        {# Only show 'Mark Done' if the user is looking at the correct week #}
+                        <a href="/complete_vaccine/{{ v.name }}/{{ week }}" 
+                           style="background-color: #ff69b4; color: white; padding: 5px 10px; text-decoration: none; border-radius: 5px; font-size: 0.8rem;">
+                           Mark Done
+                        </a>
+                    {% else %}
+                        {# If it's a future vaccine, show 'Upcoming' #}
+                        <span style="color: #999; font-style: italic;">Upcoming (Week {{ v.week }})</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="3" style="text-align: center; color: #888; padding: 20px;">
+                    No vaccines scheduled for Week {{ week }}.
+                </td>
+            </tr>
+        {% endif %}
+    </table>
+</div>
+
+    <a href="/dashboard" class="btn-back">← Back to Dashboard</a>
+</div>
+
+</body>
+>>>>>>> 7c69b216487e418f480cd58a0a70362e991a77ca
 </html>
