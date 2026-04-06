@@ -1,14 +1,17 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
 <head>
     <title>Health Risk Check</title>
     <style>
-        body { font-family: Arial; background-color: #ffeef8; display: flex; justify-content: center; padding: 20px; }
+        body { font-family: Arial, sans-serif; background-color: #ffeef8; display: flex; justify-content: center; padding: 20px; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 400px; }
         input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;}
-        button { width: 100%; padding: 10px; background-color: #ff69b4; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button { width: 100%; padding: 10px; background-color: #ff69b4; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #e91e63; }
         label { font-weight: bold; color: #555; }
+        h2 { color: #ad1457; text-align: center; }
+        .back-link { text-align: center; margin-top: 20px; }
+        .back-link a { color: #ff69b4; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -34,59 +37,11 @@
             <input type="number" name="heartrate" placeholder="e.g. 72" required>
             
             <button type="submit">Analyze Risk</button>
-            
         </form>
 
-        <br> <div style="text-align: center;">
-           <a href="{{ url_for('dashboard') }}" style="color: #ff69b4; text-decoration: none;">← Back to Dashboard</a>
-        
-        </form>
+        <div class="back-link">
+           <a href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+        </div>
     </div>
 </body>
-=======
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Health Risk Check</title>
-    <style>
-        body { font-family: Arial; background-color: #ffeef8; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 400px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;}
-        button { width: 100%; padding: 10px; background-color: #ff69b4; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        label { font-weight: bold; color: #555; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>Maternal Health Risk Check</h2>
-        <form action="/predict" method="POST">
-            <label>Age:</label>
-            <input type="number" name="age" placeholder="e.g. 25" required>
-            
-            <label>Systolic BP (Top number):</label>
-            <input type="number" name="systolic" placeholder="e.g. 120" required>
-            
-            <label>Diastolic BP (Bottom number):</label>
-            <input type="number" name="diastolic" placeholder="e.g. 80" required>
-            
-            <label>Blood Sugar (mmol/L):</label>
-            <input type="number" step="0.1" name="sugar" placeholder="e.g. 7.5" required>
-            
-            <label>Body Temperature (F):</label>
-            <input type="number" step="0.1" name="temp" placeholder="e.g. 98.6" required>
-            
-            <label>Heart Rate:</label>
-            <input type="number" name="heartrate" placeholder="e.g. 72" required>
-            
-            <button type="submit">Analyze Risk</button>
-            
-        </form>
-
-        <br> <div style="text-align: center;">
-           <a href="{{ url_for('dashboard') }}" style="color: #ff69b4; text-decoration: none;">← Back to Dashboard</a>
-        
-        </form>
-    </div>
-</body>
->>>>>>> 7c69b216487e418f480cd58a0a70362e991a77ca
 </html>
