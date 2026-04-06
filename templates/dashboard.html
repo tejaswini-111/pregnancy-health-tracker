@@ -83,10 +83,10 @@
     <div style="background: white; padding: 25px; border-radius: 15px; border: 1px solid #f8bbd0; margin-bottom: 25px;">
         <h2 style="color: #ad1457; margin-top: 0;">👩‍⚕️ Expert Q&A</h2>
         
-        <form action="/dashboard" method="GET" style="margin-bottom: 20px; display: flex; gap: 10px;">
-            <input type="text" name="search" class="search-input" placeholder="Ask about diet, exercise, or safety..." value="{{ search_query }}">
-            <button type="submit" class="btn">Search</button>
-        </form>
+        <form action="/ask_expert" method="POST" style="margin-bottom: 20px; display: flex; gap: 10px;">
+    <input type="text" name="question" class="search-input" placeholder="Ask anything about your pregnancy..." required>
+    <button type="submit" class="btn" style="background: #4285F4;">Ask Expert</button>
+</form>
 
         <div style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
             {% for faq in faqs %}

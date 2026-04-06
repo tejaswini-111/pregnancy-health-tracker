@@ -3,6 +3,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
 import os
+import urllib.parse  # Required for Google Search redirection
 
 app = Flask(__name__)
 app.secret_key = 'pregnancy_care_key_2024'
@@ -60,7 +61,6 @@ def login():
     email = request.form['email']
     password = request.form['password']
     conn = get_db_connection()
-    # Using cursor_factory here ensures we get results as a dictionary
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
     user = cursor.fetchone()
@@ -85,10 +85,9 @@ def dashboard():
     
     try:
         conn = get_db_connection()
-        # REMOVED: buffered=True (Not supported in PostgreSQL)
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # 1. Pregnancy Tracking Logic
+        # Pregnancy Tracking Logic
         cursor.execute("SELECT lmp_date FROM users WHERE name = %s", (user_display_name,))
         user_data = cursor.fetchone()
         
@@ -108,11 +107,11 @@ def dashboard():
             trimester = "1st Trimester" if weeks <= 12 else "2nd Trimester" if weeks <= 26 else "3rd Trimester"
             upcoming_task = "Visit 'View Details' for medical advice."
 
-        # 2. Health History
+        # Health History
         cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY check_date DESC LIMIT 5", (user_display_name,))
         history = cursor.fetchall()
 
-        # 3. FAQ Logic
+        # Internal FAQ Logic (for the search bar on dashboard)
         search_query = request.args.get('search', '').strip()
         if search_query:
             cursor.execute("SELECT * FROM faq WHERE question LIKE %s", ('%' + search_query + '%',))
@@ -132,7 +131,30 @@ def dashboard():
     except Exception as e:
         return f"<h1>Dashboard Error: {e}</h1>"
 
-# --- 4. VIEW DETAILS ---
+# --- 4. EXPERT Q&A (REDIRECT TO GOOGLE) ---
+@app.route('/ask_expert', methods=['POST'])
+def ask_expert():
+    user_question = request.form.get('question')
+    user_name = session.get('user_name', 'Guest')
+
+    # Optional: Save the question to your DB for logging
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO user_questions (user_name, question) VALUES (%s, %s)", (user_name, user_question))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except:
+        pass # If table doesn't exist, just proceed to redirect
+
+    # Redirect to Google with the question as a search query
+    encoded_question = urllib.parse.quote_plus(user_question)
+    google_url = f"https://www.google.com/search?q={encoded_question}"
+    
+    return redirect(google_url)
+
+# --- 5. VIEW DETAILS ---
 @app.route('/details/<int:week_num>')
 def week_details(week_num):
     if 'user_name' not in session:
@@ -140,10 +162,8 @@ def week_details(week_num):
 
     user_display_name = session.get('user_name')
     conn = get_db_connection()
-    # REMOVED: buffered=True
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-    # 1. Trimester Logic
     if week_num <= 12:
         recom = "Focus on Folic Acid (Spinach, Beans) for neural development."
         trimester = "1st Trimester"
@@ -154,7 +174,6 @@ def week_details(week_num):
         recom = "Eat smaller, frequent meals as the baby takes up more space."
         trimester = "3rd Trimester"
 
-    # 2. Baby Growth Data
     baby_growth_details = {
         0: {"size": "Poppy Seed", "desc": "Cells are dividing rapidly."},
         8: {"size": "Raspberry", "desc": "Baby's heart is beating strongly!"},
@@ -166,7 +185,6 @@ def week_details(week_num):
     
     current_info = baby_growth_details.get(week_num, {"size": "Growing", "desc": "Developing more every day!"})
 
-    # 3. Vaccination Logic
     vaccine_master_list = [
         (12, "TT 1", "Tetanus Toxoid 1st dose"),
         (16, "TT 2", "Tetanus Toxoid 2nd dose"),
@@ -174,11 +192,7 @@ def week_details(week_num):
         (28, "Tdap", "Pertussis & Tetanus Booster")
     ]
 
-    cursor.execute("""
-        SELECT vaccine_name FROM user_vaccines 
-        WHERE user_name = %s AND week_at_completion = %s
-    """, (user_display_name, week_num))
-    
+    cursor.execute("SELECT vaccine_name FROM user_vaccines WHERE user_name = %s AND week_at_completion = %s", (user_display_name, week_num))
     done_vaccines = [v['vaccine_name'] for v in cursor.fetchall()]
 
     vaccines_status = []
@@ -197,28 +211,20 @@ def week_details(week_num):
                            trimester=trimester, 
                            vaccines=vaccines_status)
 
-# --- 5. MARK VACCINE DONE ---
+# --- 6. MARK VACCINE DONE ---
 @app.route('/complete_vaccine/<vaccine_name>/<int:week_num>')
 def complete_vaccine(vaccine_name, week_num):
-    if 'user_name' not in session: 
-        return redirect(url_for('login_page'))
-    
+    if 'user_name' not in session: return redirect(url_for('login_page'))
     user_name = session.get('user_name')
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    query = """INSERT INTO user_vaccines 
-               (user_name, vaccine_name, status, completed_at, week_at_completion) 
-               VALUES (%s, %s, 'Done', NOW(), %s)"""
-    
-    cursor.execute(query, (user_name, vaccine_name, week_num))
+    cursor.execute("INSERT INTO user_vaccines (user_name, vaccine_name, status, completed_at, week_at_completion) VALUES (%s, %s, 'Done', NOW(), %s)", (user_name, vaccine_name, week_num))
     conn.commit()
     cursor.close()
     conn.close()
-    
     return redirect(url_for('week_details', week_num=week_num))
 
-# --- 6. OTHER ROUTES ---
+# --- 7. OTHER ROUTES ---
 @app.route('/update_lmp', methods=['POST'])
 def update_lmp():
     if 'user_name' not in session: return redirect(url_for('login_page'))
