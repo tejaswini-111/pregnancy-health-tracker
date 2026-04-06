@@ -1,19 +1,31 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = 'pregnancy_care_key_2024'
 
-# --- DATABASE CONNECTION ---
-def get_db_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="", 
-        database="pregnancy_db"
-    )
+import os
 
+
+# --- SMART DATABASE CONNECTION ---
+def get_db_connection():
+    # Render automatically provides this "DATABASE_URL" environment variable
+    db_url = os.environ.get('DATABASE_URL')
+    
+    if db_url:
+        # If on Render, use PostgreSQL
+        return psycopg2.connect(db_url, cursor_factory=RealDictCursor)
+    else:
+        # If on your laptop, use your local MySQL (XAMPP)
+        import mysql.connector
+        return mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="", 
+            database="pregnancy_db"
+        )
 @app.route('/')
 def home():
     return render_template('register.html')
