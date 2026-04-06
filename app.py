@@ -72,58 +72,56 @@ def dashboard():
         return redirect(url_for('login_page'))
 
     user_display_name = session.get('user_name')
-    conn = get_db_connection()
-    # Buffered cursor prevents "Unread result found" errors
-    cursor = conn.cursor(dictionary=True, buffered=True)
     
-    # --- 1. PREGNANCY TRACKING LOGIC ---
-    cursor.execute("SELECT lmp_date FROM users WHERE name = %s", (user_display_name,))
-    user_data = cursor.fetchone()
-    
-    weeks, progress, trimester = 0, 0, "Not Started"
-    due_date, upcoming_task = "N/A", "Please set your LMP date to begin tracking."
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True, buffered=True)
+        
+        # 1. Pregnancy Tracking Logic
+        cursor.execute("SELECT lmp_date FROM users WHERE name = %s", (user_display_name,))
+        user_data = cursor.fetchone()
+        
+        weeks, progress, trimester = 0, 0, "Not Started"
+        due_date, upcoming_task = "N/A", "Please set your LMP date to begin tracking."
 
-    if user_data and user_data['lmp_date']:
-        lmp = user_data['lmp_date']
-        today = datetime.now().date()
-        days_diff = (today - lmp).days
-        weeks = max(0, days_diff // 7)
-        progress = min(int((weeks / 40) * 100), 100)
-        due_date = (lmp + timedelta(days=280)).strftime('%B %d, %Y')
-        trimester = "1st Trimester" if weeks <= 12 else "2nd Trimester" if weeks <= 26 else "3rd Trimester"
-        upcoming_task = "Visit 'View Details' for your specific medical checklist and advice."
+        if user_data and user_data['lmp_date']:
+            lmp = user_data['lmp_date']
+            # If lmp comes back as a string, convert it
+            if isinstance(lmp, str):
+                lmp = datetime.strptime(lmp, '%Y-%m-%d').date()
+            
+            today = datetime.now().date()
+            days_diff = (today - lmp).days
+            weeks = max(0, days_diff // 7)
+            progress = min(int((weeks / 40) * 100), 100)
+            due_date = (lmp + timedelta(days=280)).strftime('%B %d, %Y')
+            trimester = "1st Trimester" if weeks <= 12 else "2nd Trimester" if weeks <= 26 else "3rd Trimester"
+            upcoming_task = "Visit 'View Details' for medical advice."
 
-    # --- 2. HEALTH HISTORY LOGIC ---
-    cursor.execute("SELECT systolic, sugar, risk_result, check_date FROM health_checks ORDER BY check_date DESC LIMIT 5")
-    history = cursor.fetchall()
+        # 2. Health History
+        cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY check_date DESC LIMIT 5", (user_display_name,))
+        history = cursor.fetchall()
 
-    # --- 3. NEW: EXPERT Q&A LOGIC ---
-    # Get the search term from the URL (if the user clicked 'Search')
-    search_query = request.args.get('search', '').strip()
-    
-    if search_query:
-        # Search questions or categories that match the user's input
-        query = "SELECT * FROM faq WHERE question LIKE %s OR category LIKE %s"
-        cursor.execute(query, ('%' + search_query + '%', '%' + search_query + '%'))
-    else:
-        # Default view: show 4 general questions
-        cursor.execute("SELECT * FROM faq LIMIT 4")
-    
-    faqs = cursor.fetchall()
-    
-    cursor.close()
-    conn.close()
-    
-    return render_template('dashboard.html', 
-                           user_name=user_display_name, 
-                           weeks=weeks, 
-                           trimester=trimester, 
-                           due_date=due_date, 
-                           progress=progress, 
-                           upcoming_task=upcoming_task, 
-                           history=history,
-                           faqs=faqs,
-                           search_query=search_query) # Added search_query to template context
+        # 3. FAQ Logic
+        search_query = request.args.get('search', '').strip()
+        if search_query:
+            cursor.execute("SELECT * FROM faq WHERE question LIKE %s", ('%' + search_query + '%',))
+        else:
+            cursor.execute("SELECT * FROM faq LIMIT 4")
+        faqs = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return render_template('dashboard.html', 
+                               user_name=user_display_name, weeks=weeks, 
+                               trimester=trimester, due_date=due_date, 
+                               progress=progress, upcoming_task=upcoming_task, 
+                               history=history, faqs=faqs, search_query=search_query)
+
+    except Exception as e:
+        # This will print the actual error on your screen instead of a 500 error!
+        return f"<h1>Dashboard Error: {e}</h1>"
 # --- 4. VIEW DETAILS (VACCINATION & RECOMMENDATIONS MOVED HERE) ---
 @app.route('/details/<int:week_num>')
 def week_details(week_num):
