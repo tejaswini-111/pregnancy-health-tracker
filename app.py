@@ -67,7 +67,7 @@ def login():
     email = request.form['email']
     password = request.form['password']
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
     user = cursor.fetchone()
     if user:
@@ -87,7 +87,7 @@ def dashboard():
     
     try:
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True, buffered=True)
+        cursor = conn.cursor(cursor_factory=RealDictCursor, buffered=True)
         
         # 1. Pregnancy Tracking Logic
         cursor.execute("SELECT lmp_date FROM users WHERE name = %s", (user_display_name,))
@@ -142,7 +142,7 @@ def week_details(week_num):
 
     user_display_name = session.get('user_name')
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True, buffered=True)
+    cursor = conn.cursor(cursor_factory=RealDictCursor, buffered=True)
 
     # 1. Trimester & Recommendation Logic
     if week_num <= 12:
