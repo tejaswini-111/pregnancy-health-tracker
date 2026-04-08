@@ -128,9 +128,11 @@ def dashboard():
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
+        # 1. Fetch the user's LMP date
         cursor.execute("SELECT lmp_date FROM users WHERE name = %s", (user_display_name,))
         user_data = cursor.fetchone()
         
+        # Default starting values
         weeks, progress, trimester = 0, 0, "Not Started"
         due_date, upcoming_task = "N/A", "Please set your LMP date to begin tracking."
 
@@ -140,15 +142,21 @@ def dashboard():
                 lmp = datetime.strptime(lmp, '%Y-%m-%d').date()
             
             today = datetime.now().date()
+            
+            # The exact calculation from your original version
             days_diff = (today - lmp).days
-            weeks = days_diff // 7
-        if weeks > 42:
-            weeks = 0 # Or set a message saying "Pregnancy Completed"
+            weeks = max(0, days_diff // 7)
             progress = min(int((weeks / 40) * 100), 100)
-            due_date = (lmp + timedelta(days=280)).strftime('%B %d, %Y')
+            
+            # The standard medical due date calculation (LMP + 9 months & 7 days)
+            due_date_calc = lmp + timedelta(days=280)
+            due_date = due_date_calc.strftime('%B %d, %Y')
+            
+            # Trimester logic
             trimester = "1st Trimester" if weeks <= 12 else "2nd Trimester" if weeks <= 26 else "3rd Trimester"
             upcoming_task = "Visit 'View Details' for medical advice."
 
+        # Fetch health history and FAQs (Same as before)
         cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY check_date DESC LIMIT 5", (user_display_name,))
         history = cursor.fetchall()
 
@@ -166,7 +174,8 @@ def dashboard():
                                user_name=user_display_name, weeks=weeks, 
                                trimester=trimester, due_date=due_date, 
                                progress=progress, upcoming_task=upcoming_task, 
-                               history=history, faqs=faqs, search_query=search_query)
+                               history=history, faqs=faqs)
+
     except Exception as e:
         return f"<h1>Dashboard Error: {e}</h1>"
 
