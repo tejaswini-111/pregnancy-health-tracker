@@ -3,14 +3,14 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
 import os
-import urllib.parse  # Required for Google Search redirection
+import urllib.parse
 
 app = Flask(__name__)
 app.secret_key = 'pregnancy_care_key_2024'
 
 # --- SMART DATABASE CONNECTION ---
 def get_db_connection():
-    # Render automatically provides this "DATABASE_URL" environment variable
+    # Render provides this environment variable
     db_url = os.environ.get('DATABASE_URL')
     
     if db_url:
@@ -26,6 +26,44 @@ def get_db_connection():
             database="pregnancy_db"
         )
 
+# --- EMERGENCY SETUP ROUTE (RUN THIS ONCE) ---
+@app.route('/setup-db-task-final')
+def setup_database():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        sql_commands = """
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY, name VARCHAR(100), 
+            email VARCHAR(100) UNIQUE, password VARCHAR(100), lmp_date DATE
+        );
+        CREATE TABLE IF NOT EXISTS health_checks (
+            id SERIAL PRIMARY KEY, user_name VARCHAR(100), 
+            systolic INT, sugar FLOAT, risk_result VARCHAR(50), 
+            check_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS user_vaccines (
+            id SERIAL PRIMARY KEY, user_name VARCHAR(100), 
+            vaccine_name VARCHAR(100), status VARCHAR(50), 
+            completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, week_at_completion INT
+        );
+        CREATE TABLE IF NOT EXISTS faq (
+            id SERIAL PRIMARY KEY, category VARCHAR(100), 
+            question TEXT, answer TEXT
+        );
+        INSERT INTO faq (category, question, answer) 
+        SELECT 'General', 'Welcome', 'Welcome to your pregnancy tracker.'
+        WHERE NOT EXISTS (SELECT 1 FROM faq LIMIT 1);
+        """
+        cursor.execute(sql_commands)
+        conn.commit()
+        return "<h1>Success! Tables Created. You can now Register and Login.</h1>"
+    except Exception as e:
+        return f"<h1>Setup Error: {e}</h1>"
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route('/')
 def home():
     return render_template('register.html')
@@ -34,7 +72,8 @@ def home():
 @app.route('/register', methods=['POST'])
 def register():
     name = request.form['name']
-    email = request.form['email']
+    # MOBILE FIX: strip spaces and force lowercase
+    email = request.form['email'].strip().lower() 
     password = request.form['password']
     
     conn = get_db_connection()
@@ -58,8 +97,10 @@ def login_page():
 
 @app.route('/login', methods=['POST'])
 def login():
-    email = request.form['email']
+    # MOBILE FIX: force lowercase and strip spaces
+    email = request.form['email'].strip().lower()
     password = request.form['password']
+    
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
@@ -73,7 +114,7 @@ def login():
     
     cursor.close()
     conn.close()
-    return "<h1>Invalid Login!</h1>"
+    return "<h1>Invalid Login! Check your email/password or try Registering again.</h1>"
 
 # --- 3. DASHBOARD ---
 @app.route('/dashboard')
@@ -87,7 +128,6 @@ def dashboard():
         conn = get_db_connection()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Pregnancy Tracking Logic
         cursor.execute("SELECT lmp_date FROM users WHERE name = %s", (user_display_name,))
         user_data = cursor.fetchone()
         
@@ -107,14 +147,12 @@ def dashboard():
             trimester = "1st Trimester" if weeks <= 12 else "2nd Trimester" if weeks <= 26 else "3rd Trimester"
             upcoming_task = "Visit 'View Details' for medical advice."
 
-        # Health History
         cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY check_date DESC LIMIT 5", (user_display_name,))
         history = cursor.fetchall()
 
-        # Internal FAQ Logic (for the search bar on dashboard)
         search_query = request.args.get('search', '').strip()
         if search_query:
-            cursor.execute("SELECT * FROM faq WHERE question LIKE %s", ('%' + search_query + '%',))
+            cursor.execute("SELECT * FROM faq WHERE question ILIKE %s", ('%' + search_query + '%',))
         else:
             cursor.execute("SELECT * FROM faq LIMIT 4")
         faqs = cursor.fetchall()
@@ -127,71 +165,42 @@ def dashboard():
                                trimester=trimester, due_date=due_date, 
                                progress=progress, upcoming_task=upcoming_task, 
                                history=history, faqs=faqs, search_query=search_query)
-
     except Exception as e:
         return f"<h1>Dashboard Error: {e}</h1>"
 
-# --- 4. EXPERT Q&A (REDIRECT TO GOOGLE) ---
+# --- 4. EXPERT Q&A ---
 @app.route('/ask_expert', methods=['POST'])
 def ask_expert():
     user_question = request.form.get('question')
-    user_name = session.get('user_name', 'Guest')
-
-    # Optional: Save the question to your DB for logging
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO user_questions (user_name, question) VALUES (%s, %s)", (user_name, user_question))
-        conn.commit()
-        cursor.close()
-        conn.close()
-    except:
-        pass # If table doesn't exist, just proceed to redirect
-
-    # Redirect to Google with the question as a search query
     encoded_question = urllib.parse.quote_plus(user_question)
-    google_url = f"https://www.google.com/search?q={encoded_question}"
-    
-    return redirect(google_url)
+    return redirect(f"https://www.google.com/search?q={encoded_question}")
 
 # --- 5. VIEW DETAILS ---
 @app.route('/details/<int:week_num>')
 def week_details(week_num):
-    if 'user_name' not in session:
-        return redirect(url_for('login_page'))
-
+    if 'user_name' not in session: return redirect(url_for('login_page'))
     user_display_name = session.get('user_name')
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     if week_num <= 12:
-        recom = "Focus on Folic Acid (Spinach, Beans) for neural development."
-        trimester = "1st Trimester"
+        recom, trimester = "Focus on Folic Acid for neural development.", "1st Trimester"
     elif week_num <= 26:
-        recom = "Increase Iron and Calcium intake for growing bones and blood supply."
-        trimester = "2nd Trimester"
+        recom, trimester = "Increase Iron and Calcium intake.", "2nd Trimester"
     else:
-        recom = "Eat smaller, frequent meals as the baby takes up more space."
-        trimester = "3rd Trimester"
+        recom, trimester = "Eat smaller, frequent meals.", "3rd Trimester"
 
     baby_growth_details = {
         0: {"size": "Poppy Seed", "desc": "Cells are dividing rapidly."},
-        8: {"size": "Raspberry", "desc": "Baby's heart is beating strongly!"},
+        8: {"size": "Raspberry", "desc": "Baby heart is beating strongly!"},
         12: {"size": "Lime", "desc": "Baby is now fully formed!"},
         20: {"size": "Banana", "desc": "You can start feeling kicks!"},
         32: {"size": "Squash", "desc": "Baby is gaining fat and muscle."},
         40: {"size": "Watermelon", "desc": "Ready for the world!"}
     }
-    
     current_info = baby_growth_details.get(week_num, {"size": "Growing", "desc": "Developing more every day!"})
 
-    vaccine_master_list = [
-        (12, "TT 1", "Tetanus Toxoid 1st dose"),
-        (16, "TT 2", "Tetanus Toxoid 2nd dose"),
-        (20, "Flu Shot", "Seasonal Influenza Protection"),
-        (28, "Tdap", "Pertussis & Tetanus Booster")
-    ]
-
+    vaccine_master_list = [(12, "TT 1", "Tetanus 1"), (16, "TT 2", "Tetanus 2"), (20, "Flu", "Flu Shot"), (28, "Tdap", "Booster")]
     cursor.execute("SELECT vaccine_name FROM user_vaccines WHERE user_name = %s AND week_at_completion = %s", (user_display_name, week_num))
     done_vaccines = [v['vaccine_name'] for v in cursor.fetchall()]
 
@@ -203,13 +212,7 @@ def week_details(week_num):
 
     cursor.close()
     conn.close()
-
-    return render_template('details.html', 
-                           week=week_num, 
-                           info=current_info, 
-                           recom=recom, 
-                           trimester=trimester, 
-                           vaccines=vaccines_status)
+    return render_template('details.html', week=week_num, info=current_info, recom=recom, trimester=trimester, vaccines=vaccines_status)
 
 # --- 6. MARK VACCINE DONE ---
 @app.route('/complete_vaccine/<vaccine_name>/<int:week_num>')
@@ -224,7 +227,7 @@ def complete_vaccine(vaccine_name, week_num):
     conn.close()
     return redirect(url_for('week_details', week_num=week_num))
 
-# --- 7. OTHER ROUTES ---
+# --- 7. UTILITY ROUTES ---
 @app.route('/update_lmp', methods=['POST'])
 def update_lmp():
     if 'user_name' not in session: return redirect(url_for('login_page'))
@@ -244,12 +247,10 @@ def predict_page():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    age = int(request.form.get('age', 25))
     systolic = int(request.form.get('systolic', 120))
     sugar = float(request.form.get('sugar', 5.0))
     user_name = session.get('user_name', 'Guest')
-    
-    result, color = ("High Risk", "red") if systolic > 140 or sugar > 10.0 else ("Mid Risk", "orange") if systolic > 120 or sugar > 8.0 else ("Low Risk", "green")
+    result, color = ("High Risk", "#cf1322") if systolic > 140 or sugar > 10.0 else ("Mid Risk", "#d46b08") if systolic > 120 or sugar > 8.0 else ("Low Risk", "#389e0d")
     
     conn = get_db_connection()
     cursor = conn.cursor()
