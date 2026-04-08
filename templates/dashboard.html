@@ -1,47 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container" style="width: 100%; max-width: 500px; margin: 0 auto; padding: 20px;">
+<div class="container" style="width: 100%; max-width: 700px; margin: 0 auto; padding: 40px 20px;">
 
-    <div style="background: #fff; border-radius: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); padding: 30px; border-top: 10px solid var(--pink-main); overflow: hidden;">
+    <div style="background: #fff; border-radius: 30px; box-shadow: 0 15px 50px rgba(0,0,0,0.1); padding: 40px; border-top: 12px solid var(--pink-main);">
         
-        <div style="text-align: center; margin-bottom: 20px;">
-            <h2 style="color: var(--pink-dark); margin: 0; font-size: 1.8rem;">Welcome, {{ user_name }}!</h2>
-            <p style="color: #bbb; font-size: 0.9rem; margin-top: 5px;">Your Pregnancy Journey</p>
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h2 style="color: var(--pink-dark); margin: 0; font-size: 2.2rem; letter-spacing: -1px;">Welcome, {{ user_name }}!</h2>
+            <p style="color: #999; font-size: 1.1rem; margin-top: 8px;">Your Pregnancy Journey Dashboard</p>
         </div>
 
-        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; padding: 10px; background: #fff5f7; border-radius: 15px;">
-            <a href="/dashboard" style="text-decoration: none; color: var(--pink-dark); font-size: 0.85rem; font-weight: bold;">🏠 Dashboard</a>
-            <a href="/predict_page" style="text-decoration: none; color: var(--pink-dark); font-size: 0.85rem; font-weight: bold;">❤️ Health Tracker</a>
-            <a href="/faq_page" style="text-decoration: none; color: var(--pink-dark); font-size: 0.85rem; font-weight: bold;">👩‍⚕️ Medical FAQ</a>
+        <div style="display: flex; justify-content: center; gap: 25px; margin-bottom: 35px; padding: 15px; background: #fff5f7; border-radius: 20px;">
+            <a href="/dashboard" style="text-decoration: none; color: var(--pink-dark); font-size: 1rem; font-weight: bold;">🏠 Dashboard</a>
+            <a href="/predict_page" style="text-decoration: none; color: var(--pink-dark); font-size: 1rem; font-weight: bold;">❤️ Health Tracker</a>
+            <a href="/faq_page" style="text-decoration: none; color: var(--pink-dark); font-size: 1rem; font-weight: bold;">👩‍⚕️ Medical FAQ</a>
         </div>
 
-        <div style="margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px;">
-            <p style="margin: 0 0 10px 0; font-weight: bold; color: #555; font-size: 0.9rem;">📅 Update Timeline</p>
-            <form action="/update_lmp" method="POST" style="display: flex; gap: 8px;">
-                <input type="date" name="lmp_date" required style="flex-grow: 1; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-size: 0.9rem;">
-                <button type="submit" style="background: var(--pink-main); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer;">Sync</button>
+        <div style="margin-bottom: 40px; border-bottom: 2px solid #f9f9f9; padding-bottom: 30px;">
+            <p style="margin: 0 0 15px 0; font-weight: bold; color: #444; font-size: 1.1rem;">📅 Update Pregnancy Timeline</p>
+            <form action="/update_lmp" method="POST" style="display: flex; gap: 12px;">
+                <input type="date" name="lmp_date" required style="flex-grow: 1; padding: 15px; border-radius: 12px; border: 1px solid #ddd; font-size: 1.1rem; font-family: inherit;">
+                <button type="submit" style="background: var(--pink-main); color: white; border: none; padding: 10px 30px; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s;">Sync</button>
             </form>
         </div>
 
-        <div style="margin-bottom: 30px; text-align: center;">
-            <div style="background: #f0f0f0; border-radius: 20px; height: 12px; overflow: hidden; margin-bottom: 15px;">
-                <div style="width: {{ progress }}%; background: linear-gradient(90deg, var(--pink-light), var(--pink-main)); height: 100%;"></div>
+        <div style="margin-bottom: 40px; text-align: center;">
+            <div style="background: #f0f0f0; border-radius: 25px; height: 18px; overflow: hidden; margin-bottom: 25px;">
+                <div style="width: {{ progress }}%; background: linear-gradient(90deg, var(--pink-light), var(--pink-main)); height: 100%; transition: width 1s ease-in-out;"></div>
             </div>
-            <div style="display: flex; justify-content: space-around;">
-                <div><span style="display:block; color:#aaa; font-size:0.75rem;">Week</span><b style="font-size:1.2rem;">{{ weeks }}</b></div>
-                <div><span style="display:block; color:#aaa; font-size:0.75rem;">Trimester</span><b style="font-size:1.2rem;">{{ trimester }}</b></div>
-                <div><span style="display:block; color:#aaa; font-size:0.75rem;">Due Date</span><b style="font-size:0.9rem;">{{ due_date }}</b></div>
+            <div style="display: flex; justify-content: space-around; align-items: center;">
+                <div style="flex: 1;"><span style="display:block; color:#aaa; font-size:0.9rem; text-transform: uppercase;">Week</span><b style="font-size:2rem; color: var(--pink-dark);">{{ weeks }}</b></div>
+                <div style="flex: 1; border-left: 2px solid #eee; border-right: 2px solid #eee;"><span style="display:block; color:#aaa; font-size:0.9rem; text-transform: uppercase;">Trimester</span><b style="font-size:1.6rem; color: var(--pink-dark);">{{ trimester }}</b></div>
+                <div style="flex: 1;"><span style="display:block; color:#aaa; font-size:0.9rem; text-transform: uppercase;">Due Date</span><b style="font-size:1.2rem; color: var(--pink-dark);">{{ due_date }}</b></div>
             </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 15px;">
-            <a href="/predict_page" style="background: var(--pink-main); color: white; text-align: center; padding: 18px; border-radius: 15px; text-decoration: none; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);">❤️ Run Health Analysis</a>
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <a href="/predict_page" style="background: var(--pink-main); color: white; text-align: center; padding: 22px; border-radius: 18px; text-decoration: none; font-weight: bold; font-size: 1.3rem; box-shadow: 0 6px 20px rgba(255, 105, 180, 0.3); transition: transform 0.2s;">❤️ Run Health Risk Analysis</a>
             
-            <a href="/details/{{ weeks }}" style="background: var(--pink-dark); color: white; text-align: center; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 1rem;">🔍 View Week Details</a>
+            <a href="/details/{{ weeks }}" style="background: var(--pink-dark); color: white; text-align: center; padding: 18px; border-radius: 15px; text-decoration: none; font-weight: bold; font-size: 1.1rem;">🔍 View Detailed Week Info</a>
             
-            <a href="/faq_page" style="background: #fff; color: var(--pink-dark); border: 2px solid var(--pink-dark); text-align: center; padding: 10px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 0.9rem;">🩺 Medical FAQ</a>
+            <a href="/faq_page" style="background: #fff; color: var(--pink-dark); border: 2px solid var(--pink-dark); text-align: center; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 1rem;">🩺 Open Medical FAQ</a>
             
-            <a href="/logout" style="text-align: center; color: #cc0000; text-decoration: none; font-size: 0.85rem; margin-top: 15px; font-weight: bold;">Logout</a>
+            <a href="/logout" style="text-align: center; color: #cc0000; text-decoration: none; font-size: 1rem; margin-top: 20px; font-weight: bold; opacity: 0.7;">Logout System</a>
         </div>
     </div>
 </div>
