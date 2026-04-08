@@ -65,7 +65,38 @@ def home():
     if 'user_name' in session:
         return redirect(url_for('dashboard'))
     return render_template('register.html')
+@app.route('/register', methods=['POST'])
+def register():
+    name = request.form.get('name')
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", (name, email, password))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    
+    session['user_name'] = name
+    return redirect(url_for('dashboard'))
 
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
+    user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    if user:
+        session['user_name'] = user['name']
+        return redirect(url_for('dashboard'))
+    return "Invalid Credentials"
 @app.route('/dashboard')
 def dashboard():
     if 'user_name' not in session: return redirect(url_for('login_page'))
