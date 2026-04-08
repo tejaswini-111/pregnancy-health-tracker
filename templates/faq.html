@@ -1,43 +1,29 @@
 {% extends "base.html" %}
-{% block title %}Medical FAQ Search{% endblock %}
-
 {% block content %}
 <div class="card">
-    <h2 style="color:var(--pink-dark);">🩺 Pregnancy Medical FAQ</h2>
-    <p style="color:#666;">Select a topic below to search for the latest medical guidance on Google. This ensures you always get the most current healthcare information.</p>
+    <h2 style="color:var(--pink-dark);">🩺 Medical Search & FAQ</h2>
     
-    <div style="margin-top: 20px;">
+    <div style="margin-bottom: 30px; padding: 15px; background: var(--pink-light); border-radius: 12px;">
+        <p style="margin-top:0;"><strong>Search anything on Google:</strong></p>
+        <form action="https://www.google.com/search" method="GET" target="_blank" style="display: flex; gap: 10px;">
+            <input type="text" name="q" placeholder="Type your medical question..." 
+                   style="flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+            <button type="submit" class="btn" style="background: var(--pink-main);">Search</button>
+        </form>
+    </div>
+
+    <p style="color:#666;">Or select a quick topic:</p>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
         {% for q in questions %}
-            <a href="https://www.google.com/search?q={{ q|urlencode }}" 
-               target="_blank" 
-               style="display: block; background: #fff; border: 1px solid var(--pink-light); padding: 18px; margin-bottom: 12px; border-radius: 12px; text-decoration: none; color: #333; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 5px solid var(--pink-main);">
-                
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>
-                        <strong style="color: var(--pink-main); margin-right: 5px;">Q:</strong> {{ q }}
-                    </span>
-                    <span style="font-size: 1.2rem; color: var(--pink-light);">↗</span>
-                </div>
+            <a href="https://www.google.com/search?q={{ q|urlencode }}" target="_blank" 
+               style="background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 8px; text-decoration: none; color: #333; border-left: 4px solid var(--pink-main);">
+                {{ q }} ↗
             </a>
         {% endfor %}
     </div>
 
-    <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
-    
-    <div style="text-align: center;">
-        <a href="/dashboard" style="color: var(--pink-dark); text-decoration: none; font-weight: bold; font-size: 1.1rem;">
-            ← Back to Dashboard
-        </a>
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="/dashboard" style="color: var(--pink-dark); text-decoration: none;">← Back to Dashboard</a>
     </div>
 </div>
-
-<style>
-    /* Adding some hover effects to make it feel interactive */
-    a:hover { 
-        background: #fffcfd !important; 
-        border-color: var(--pink-main) !important;
-        transform: translateY(-3px);
-        box-shadow: 0 4px 12px rgba(173, 20, 87, 0.15) !important;
-    }
-</style>
 {% endblock %}
