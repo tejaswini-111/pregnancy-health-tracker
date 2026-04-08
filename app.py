@@ -273,3 +273,4 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
+    # Version 2.0 - FAQ Route Final Sync
