@@ -9,7 +9,7 @@ app.secret_key = 'your_secret_key_here'  # Change this for production
 
 # --- DATABASE CONNECTION ---
 def get_db_connection():
-    # Replace with your actual Render/External Database URL
+    # Render automatically provides DATABASE_URL in environment variables
     DATABASE_URL = os.environ.get('DATABASE_URL')
     conn = psycopg2.connect(DATABASE_URL)
     return conn
@@ -65,6 +65,7 @@ def home():
     if 'user_name' in session:
         return redirect(url_for('dashboard'))
     return render_template('register.html')
+
 @app.route('/register', methods=['POST'])
 def register():
     name = request.form.get('name')
@@ -73,13 +74,16 @@ def register():
     
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", (name, email, password))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    
-    session['user_name'] = name
-    return redirect(url_for('dashboard'))
+    try:
+        cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", (name, email, password))
+        conn.commit()
+        session['user_name'] = name
+        return redirect(url_for('dashboard'))
+    except Exception as e:
+        return f"Registration Error: {e}"
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -96,7 +100,8 @@ def login():
     if user:
         session['user_name'] = user['name']
         return redirect(url_for('dashboard'))
-    return "Invalid Credentials"
+    return "<h1>Invalid Credentials</h1><a href='/login_page'>Try Again</a>"
+
 @app.route('/dashboard')
 def dashboard():
     if 'user_name' not in session: return redirect(url_for('login_page'))
@@ -191,7 +196,6 @@ def predict():
     cursor.close()
     conn.close()
 
-    # Pass everything to template (Important: uses render_template to show the result card)
     return render_template('predict.html', history=history, latest_result=result, result_color=color, advice=advice)
 
 @app.route('/details/<int:week_num>')
@@ -199,7 +203,6 @@ def week_details(week_num):
     if 'user_name' not in session: return redirect(url_for('login_page'))
     user_name = session.get('user_name')
     
-    # Data for the page
     baby_growth = {
         0: {"size": "Poppy Seed", "desc": "Implantation is occurring."},
         4: {"size": "Poppy Seed", "desc": "Major organs begin to form."},
@@ -218,7 +221,6 @@ def week_details(week_num):
     recom = "Stay hydrated and take prenatal vitamins."
     trimester = "1st Trimester" if week_num <= 12 else "2nd Trimester" if week_num <= 26 else "3rd Trimester"
 
-    # Vaccine Master List (Week, Name, Description)
     v_list = [(12, "TT 1", "Tetanus Toxoid 1"), (16, "TT 2", "Tetanus Toxoid 2"), (20, "Flu", "Flu Shot"), (28, "Tdap", "Pertussis Booster")]
     
     conn = get_db_connection()
@@ -245,6 +247,20 @@ def complete_vaccine(v_name, w_num):
     cursor.close()
     conn.close()
     return redirect(url_for('week_details', week_num=w_num))
+
+@app.route('/faq')
+def faq():
+    if 'user_name' not in session: return redirect(url_for('login_page'))
+    
+    medical_faqs = [
+        "Normal blood pressure during pregnancy",
+        "Safe exercises for 2nd trimester",
+        "Signs of gestational diabetes",
+        "Foods to avoid during pregnancy",
+        "How much water should a pregnant woman drink",
+        "Standard pregnancy vaccination schedule"
+    ]
+    return render_template('faq.html', questions=medical_faqs)
 
 @app.route('/login_page')
 def login_page():
