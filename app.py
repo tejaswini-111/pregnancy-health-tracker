@@ -141,7 +141,9 @@ def dashboard():
             
             today = datetime.now().date()
             days_diff = (today - lmp).days
-            weeks = max(0, days_diff // 7)
+            weeks = days_diff // 7
+        if weeks > 42:
+            weeks = 0 # Or set a message saying "Pregnancy Completed"
             progress = min(int((weeks / 40) * 100), 100)
             due_date = (lmp + timedelta(days=280)).strftime('%B %d, %Y')
             trimester = "1st Trimester" if weeks <= 12 else "2nd Trimester" if weeks <= 26 else "3rd Trimester"
