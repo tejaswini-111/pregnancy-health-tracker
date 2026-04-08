@@ -1,102 +1,185 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Week {{ week }} Details</title>
+    <title>Week {{ week }} Details | Pregnancy Care</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fce4ec; padding: 20px; }
-        .card { background: white; max-width: 700px; margin: auto; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2, h3 { color: #ad1457; }
-        .section { margin-bottom: 25px; padding: 15px; border-radius: 10px; border: 1px solid #fce4ec; }
+        :root { 
+            --pink-main: #ff69b4; 
+            --pink-dark: #ad1457; 
+            --pink-light: #fce4ec; 
+            --success-green: #22c55e;
+            --warning-amber: #f59e0b;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #fdf2f7; 
+            margin: 0; 
+            padding: 20px; 
+            color: #333;
+        }
+        .card { 
+            background: white; 
+            max-width: 750px; 
+            margin: 20px auto; 
+            padding: 35px; 
+            border-radius: 25px; 
+            box-shadow: 0 15px 35px rgba(173, 20, 87, 0.1); 
+        }
         
-        /* Growth Visual Style */
-        .growth-visual { text-align: center; background: #fff5f8; padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px dashed #f8bbd0; }
-        .fruit-icon { font-size: 4rem; margin-bottom: 10px; display: block; }
+        /* Header Section */
+        .header-section { text-align: center; margin-bottom: 30px; }
+        .trimester-badge { 
+            background: var(--pink-light); 
+            color: var(--pink-dark); 
+            padding: 8px 20px; 
+            border-radius: 30px; 
+            font-weight: bold; 
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        /* Growth Visual Section */
+        .growth-card { 
+            background: linear-gradient(135deg, #fff5f8 0%, #fce4ec 100%);
+            padding: 25px; 
+            border-radius: 20px; 
+            margin-bottom: 30px; 
+            text-align: center;
+            border: 1px solid var(--pink-light);
+        }
+        .growth-icon { font-size: 4.5rem; margin-bottom: 15px; display: block; }
+        .growth-title { font-size: 1.4rem; color: var(--pink-dark); margin: 0; }
+        .growth-desc { color: #666; font-style: italic; margin-top: 10px; line-height: 1.6; }
+
+        /* Content Sections */
+        .info-section { margin-bottom: 25px; }
+        h3 { color: var(--pink-dark); border-left: 5px solid var(--pink-main); padding-left: 15px; margin-bottom: 15px; }
         
-        .recom-box { background: #f0fdf4; border-left: 5px solid #22c55e; padding: 15px; color: #166534; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 10px; border: 1px solid #f8bbd0; text-align: left; }
-        th { background: #f8bbd0; color: #ad1457; }
-        .badge { padding: 3px 8px; border-radius: 5px; font-weight: bold; font-size: 0.8rem; text-transform: capitalize; }
+        .recom-box { 
+            background: #f0fdf4; 
+            border-radius: 12px; 
+            padding: 20px; 
+            color: #166534; 
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        /* Table Styling */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th { background: #f8f9fa; color: #666; font-weight: 600; text-align: left; padding: 15px; border-bottom: 2px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #f0f0f0; }
+        
+        /* Status Badges */
+        .badge { 
+            padding: 5px 12px; 
+            border-radius: 6px; 
+            font-size: 0.75rem; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+        }
         .done { background: #dcfce7; color: #166534; }
-        .overdue { background: #fee2e2; color: #991b1b; }
         .pending { background: #fef3c7; color: #92400e; }
-        .btn-back { display: inline-block; margin-top: 20px; text-decoration: none; color: #ad1457; font-weight: bold; transition: 0.3s; }
-        .btn-back:hover { color: #ff69b4; }
+
+        /* Buttons */
+        .btn-action { 
+            background: var(--pink-main); 
+            color: white; 
+            padding: 8px 16px; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-size: 0.85rem; 
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-action:hover { background: var(--pink-dark); }
+        .btn-back { 
+            display: block; 
+            text-align: center; 
+            margin-top: 30px; 
+            text-decoration: none; 
+            color: var(--pink-dark); 
+            font-weight: 600; 
+        }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="margin-bottom: 5px;">Week {{ week }} Analysis</h2>
-        <span style="background: #f8bbd0; color: #ad1457; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">
-            {{ trimester }}
-        </span>
+    <div class="header-section">
+        <h1 style="margin: 0; color: var(--pink-dark);">Week {{ week }} Analysis</h1>
+        <div class="trimester-badge">{{ trimester }}</div>
     </div>
 
-    <div class="growth-visual">
-        <span class="fruit-icon">
+    <div class="growth-card">
+        <span class="growth-icon">
             {% if week < 8 %} 🌱 {% elif week < 12 %} 🍓 {% elif week < 20 %} 🍋 {% elif week < 30 %} 🍐 {% else %} 👶 {% endif %}
         </span>
-        <h3 style="margin: 0;">Baby is the size of a {{ info.size }}</h3>
-        <p style="color: #666; font-style: italic; margin-top: 10px;">"{{ info.desc }}"</p>
+        <h2 class="growth-title">Baby is the size of a {{ info.size }}</h2>
+        <p class="growth-desc">"{{ info.desc }}"</p>
     </div>
 
-    <div class="section recom-box">
-        <strong>🍎 Nutrition & Health Tip:</strong>
-        <p style="margin: 5px 0 0 0;">{{ recom }}</p>
+    <div class="info-section">
+        <h3>🩺 Medical Guidance</h3>
+        <div class="recom-box">
+            <span style="font-size: 1.5rem;">🍎</span>
+            <div>
+                <strong style="display: block; margin-bottom: 5px;">Nutrition & Wellness Tip:</strong>
+                {{ recom }}
+            </div>
+        </div>
     </div>
 
-    <div class="section">
+    <div class="info-section">
         <h3>💉 Vaccination Tracker</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Vaccine</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if vaccines %}
-                    {% for v in vaccines %}
+        <div class="table-container">
+            <table>
+                <thead>
                     <tr>
-                        <td>
-                            {{ v.name }} <br>
-                            <small style="color: #666;">{{ v.desc }} (Due: Week {{ v.week }})</small>
-                        </td>
-                        <td>
-                            <span class="badge {{ v.status.lower() }}">{{ v.status }}</span>
-                        </td>
-                        <td>
-                            {% if v.status == 'Done' %}
-                                <span style="color: green;">✅ Completed</span>
-                            {% elif v.week == week %} 
-                                <a href="/complete_vaccine/{{ v.name }}/{{ week }}" 
-                                   style="background-color: #ff69b4; color: white; padding: 5px 10px; text-decoration: none; border-radius: 5px; font-size: 0.8rem;">
-                                   Mark Done
-                                </a>
-                            {% else %}
-                                <span style="color: #999; font-style: italic;">Upcoming</span>
-                            {% endif %}
-                        </td>
+                        <th>Vaccine Name</th>
+                        <th>Status</th>
+                        <th>Action</th>
                     </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="3" style="text-align: center; color: #888; padding: 20px;">
-                            No vaccines scheduled for Week {{ week }}.
-                        </td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% if vaccines %}
+                        {% for v in vaccines %}
+                        <tr>
+                            <td>
+                                <strong style="color: #444;">{{ v.name }}</strong><br>
+                                <small style="color: #888;">{{ v.desc }} (Recommended: Week {{ v.week }})</small>
+                            </td>
+                            <td>
+                                <span class="badge {{ v.status.lower() }}">{{ v.status }}</span>
+                            </td>
+                            <td>
+                                {% if v.status == 'Done' %}
+                                    <span style="color: var(--success-green); font-weight: bold;">✅ Completed</span>
+                                {% elif v.week == week %} 
+                                    <a href="/complete_vaccine/{{ v.name }}/{{ week }}" class="btn-action">Mark as Done</a>
+                                {% else %}
+                                    <span style="color: #999; font-style: italic; font-size: 0.85rem;">Coming Up</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #999; padding: 30px;">
+                                No critical vaccinations scheduled for Week {{ week }}.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <div style="text-align: center;">
-        <a href="/dashboard" class="btn-back">← Back to Dashboard</a>
-    </div>
+    <a href="/dashboard" class="btn-back">← Return to Dashboard</a>
 </div>
 
 </body>

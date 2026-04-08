@@ -1,39 +1,31 @@
 {% extends "base.html" %}
-{% block title %}Dashboard{% endblock %}
-
 {% block content %}
-<div class="card">
-    <h2 style="color:var(--pink-dark);">Hello, {{ user_name }}!</h2>
-    <p style="color:#666;">Welcome to your personalized pregnancy dashboard.</p>
-    
-    <div class="card" style="margin-top:20px; border: 1px solid var(--pink-light);">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; color:var(--pink-dark);">🗓️ Journey Timeline</h3>
-            <span style="font-weight:bold; color:var(--pink-dark);">Week {{ weeks }} of 40</span>
-        </div>
-        <div class="progress-wrapper" style="background:#eee; border-radius:20px; height:14px; margin:15px 0; overflow:hidden;">
-            <div style="background: linear-gradient(90deg, #ff69b4, #ad1457); height:100%; width: {{ progress }}%;"></div>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#666;">
-            <span>Phase: <strong>{{ trimester }}</strong></span>
-            <span>Est. Due Date: <strong>{{ due_date }}</strong></span>
-        </div>
+<div class="container">
+    <div class="card" style="margin-bottom: 20px; border-top: 5px solid var(--pink-main);">
+        <h3>📅 Update Pregnancy Timeline</h3>
+        <form action="/update_lmp" method="POST" style="display: flex; gap: 10px;">
+            <input type="date" name="lmp_date" required style="flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+            <button type="submit" class="btn" style="background: var(--pink-main);">Update LMP</button>
+        </form>
     </div>
 
-    <div style="margin-top:30px;">
-        <h3 style="color:var(--pink-dark);">Actions</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-            <a href="/predict_page" class="btn" style="background:var(--pink-main); color:white; text-decoration:none; padding:15px; border-radius:10px; text-align:center;">Check Health Risk</a>
-            <a href="/faq_page" class="btn" style="background:var(--google-blue); color:white; text-decoration:none; padding:15px; border-radius:10px; text-align:center;">Ask Expert</a>
+    <div class="card">
+        <h2 style="color: var(--pink-dark);">Welcome, {{ user_name }}!</h2>
+        <div style="background: #eee; border-radius: 20px; height: 25px; margin: 20px 0; overflow: hidden;">
+            <div style="width: {{ progress }}%; background: var(--pink-main); height: 100%; text-align: center; color: white; font-size: 14px; line-height: 25px;">
+                {{ progress }}%
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; text-align: center;">
+            <div><p><strong>Week</strong></p><h3>{{ weeks }}</h3></div>
+            <div><p><strong>Trimester</strong></p><h3>{{ trimester }}</h3></div>
+            <div><p><strong>Due Date</strong></p><h3>{{ due_date }}</h3></div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="/details/{{ weeks }}" class="btn" style="background: var(--pink-dark); width: 80%;">🔍 View Week {{ weeks }} Details & Vaccines</a>
         </div>
     </div>
-
-    <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
-    
-    <form action="/update_lmp" method="POST" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-        <label style="font-size:0.85rem; font-weight:bold;">Reset Timeline (LMP):</label>
-        <input type="date" name="lmp_date" required style="padding:10px; border:1px solid #ddd; border-radius:8px;">
-        <button type="submit" class="btn" style="padding:10px 20px; background:var(--pink-dark); color:white; border:none; border-radius:8px; cursor:pointer;">Update</button>
-    </form>
 </div>
 {% endblock %}

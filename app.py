@@ -25,6 +25,7 @@ def setup_database():
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
+        # Update this variable to include the user_vaccines table
         sql_commands = """
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY, name VARCHAR(100), 
@@ -39,10 +40,18 @@ def setup_database():
             id SERIAL PRIMARY KEY, category VARCHAR(100), 
             question TEXT, answer TEXT
         );
+        CREATE TABLE IF NOT EXISTS user_vaccines (
+            id SERIAL PRIMARY KEY, 
+            user_name VARCHAR(100), 
+            vaccine_name VARCHAR(100), 
+            status VARCHAR(50), 
+            completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+            week_at_completion INT
+        );
         """
         cursor.execute(sql_commands)
         conn.commit()
-        return "<h1>Success! Tables Created.</h1>"
+        return "<h1>Success! All tables (including Vaccines) are ready.</h1>"
     except Exception as e:
         return f"<h1>Setup Error: {e}</h1>"
     finally:
@@ -114,7 +123,76 @@ def dashboard():
     conn.close()
     return render_template('dashboard.html', user_name=user_display_name, start_date=start_date,
                            weeks=weeks, trimester=trimester, due_date=due_date, progress=progress)
+# --- [ADD THIS BELOW THE DASHBOARD ROUTE] ---
 
+@app.route('/details/<int:week_num>')
+def week_details(week_num):
+    if 'user_name' not in session: return redirect(url_for('login_page'))
+    user_display_name = session.get('user_name')
+    
+    # Recommendations based on Trimester
+    if week_num <= 12:
+        recom, trimester = "Focus on Folic Acid for neural development.", "1st Trimester"
+    elif week_num <= 26:
+        recom, trimester = "Increase Iron and Calcium intake.", "2nd Trimester"
+    else:
+        recom, trimester = "Eat smaller, frequent meals.", "3rd Trimester"
+
+    # Baby Growth Data
+    baby_growth_details = {
+        0: {"size": "Poppy Seed", "desc": "Cells are dividing rapidly."},
+        4: {"size": "Poppy Seed", "desc": "The blastocyst has arrived in the uterus."},
+        8: {"size": "Raspberry", "desc": "Baby heart is beating strongly!"},
+        12: {"size": "Lime", "desc": "Baby is now fully formed!"},
+        16: {"size": "Avocado", "desc": "Baby can sense light and is moving fingers."},
+        20: {"size": "Banana", "desc": "You can start feeling kicks!"},
+        24: {"size": "Corn", "desc": "Baby's lungs are developing surfactant."},
+        28: {"size": "Eggplant", "desc": "Baby's eyes are partially open."},
+        32: {"size": "Squash", "desc": "Baby is gaining fat and muscle."},
+        36: {"size": "Papaya", "desc": "Baby is taking up most of the space."},
+        40: {"size": "Watermelon", "desc": "Ready for the world!"}
+    }
+    current_info = baby_growth_details.get(week_num, {"size": "Growing", "desc": "Developing more every day!"})
+
+    # Vaccine Logic
+    vaccine_master_list = [(12, "TT 1", "Tetanus 1"), (16, "TT 2", "Tetanus 2"), (20, "Flu", "Flu Shot"), (28, "Tdap", "Booster")]
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    
+    # Ensure the user_vaccines table exists or handle the error
+    try:
+        cursor.execute("SELECT vaccine_name FROM user_vaccines WHERE user_name = %s AND week_at_completion = %s", (user_display_name, week_num))
+        done_vaccines = [v['vaccine_name'] for v in cursor.fetchall()]
+    except:
+        done_vaccines = []
+    
+    vaccines_status = []
+    for v_week, name, desc in vaccine_master_list:
+        if v_week == week_num:
+            status = "Done" if name in done_vaccines else "Pending"
+            vaccines_status.append({'week': v_week, 'name': name, 'desc': desc, 'status': status})
+
+    cursor.close()
+    conn.close()
+    return render_template('details.html', week=week_num, info=current_info, recom=recom, trimester=trimester, vaccines=vaccines_status)
+
+# --- ADD THIS TO HANDLE THE VACCINE BUTTON CLICK ---
+@app.route('/complete_vaccine/<vaccine_name>/<int:week_num>')
+def complete_vaccine(vaccine_name, week_num):
+    if 'user_name' not in session: return redirect(url_for('login_page'))
+    user_name = session.get('user_name')
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO user_vaccines (user_name, vaccine_name, status, week_at_completion) VALUES (%s, %s, 'Done', %s)", (user_name, vaccine_name, week_num))
+        conn.commit()
+    except Exception as e:
+        print(f"Vaccine Error: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+    return redirect(url_for('week_details', week_num=week_num))
 @app.route('/predict_page')
 def predict_page():
     if 'user_name' not in session: return redirect(url_for('login_page'))
