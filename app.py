@@ -19,12 +19,80 @@ def get_db_connection():
             host="localhost", user="root", password="", database="pregnancy_db"
         )
 
-# --- 1. THE MAIN DASHBOARD ---
+# --- EMERGENCY SETUP ROUTE ---
+@app.route('/setup-db-task-final')
+def setup_database():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        sql_commands = """
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY, name VARCHAR(100), 
+            email VARCHAR(100) UNIQUE, password VARCHAR(100), lmp_date DATE
+        );
+        CREATE TABLE IF NOT EXISTS health_checks (
+            id SERIAL PRIMARY KEY, user_name VARCHAR(100), 
+            systolic INT, sugar FLOAT, risk_result VARCHAR(50), 
+            check_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS faq (
+            id SERIAL PRIMARY KEY, category VARCHAR(100), 
+            question TEXT, answer TEXT
+        );
+        """
+        cursor.execute(sql_commands)
+        conn.commit()
+        return "<h1>Success! Tables Created.</h1>"
+    except Exception as e:
+        return f"<h1>Setup Error: {e}</h1>"
+    finally:
+        cursor.close()
+        conn.close()
+
+# --- AUTHENTICATION ROUTES ---
+@app.route('/')
+def home():
+    return render_template('register.html')
+
+@app.route('/register', methods=['POST'])
+def register():
+    name = request.form['name']
+    email = request.form['email'].strip().lower() 
+    password = request.form['password']
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", (name, email, password))
+        conn.commit()
+        return redirect(url_for('login_page'))
+    except Exception as err:
+        return f"<h1>Registration Error: {err}</h1>"
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route('/login_page')
+def login_page():
+    return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.form['email'].strip().lower()
+    password = request.form['password']
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
+    user = cursor.fetchone()
+    if user:
+        session['user_name'] = user['name']
+        return redirect(url_for('dashboard'))
+    return "<h1>Invalid Login!</h1>"
+
+# --- MAIN PAGES ---
 @app.route('/dashboard')
 def dashboard():
     if 'user_name' not in session: return redirect(url_for('login_page'))
     user_display_name = session.get('user_name')
-    
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT lmp_date FROM users WHERE name = %s", (user_display_name,))
@@ -47,7 +115,6 @@ def dashboard():
     return render_template('dashboard.html', user_name=user_display_name, start_date=start_date,
                            weeks=weeks, trimester=trimester, due_date=due_date, progress=progress)
 
-# --- 2. THE HEALTH TRACKER PAGE (Modularized) ---
 @app.route('/predict_page')
 def predict_page():
     if 'user_name' not in session: return redirect(url_for('login_page'))
@@ -60,7 +127,6 @@ def predict_page():
     conn.close()
     return render_template('predict.html', history=history)
 
-# --- 3. THE MEDICAL FAQ PAGE (Modularized) ---
 @app.route('/faq_page')
 def faq_page():
     if 'user_name' not in session: return redirect(url_for('login_page'))
@@ -72,14 +138,13 @@ def faq_page():
     conn.close()
     return render_template('faq_page.html', faqs=faqs)
 
-# --- 4. DATA PROCESSING ROUTES ---
+# --- ACTION ROUTES ---
 @app.route('/predict', methods=['POST'])
 def predict():
     systolic = int(request.form.get('systolic', 120))
     sugar = float(request.form.get('sugar', 5.0))
     user_name = session.get('user_name', 'Guest')
     result = "High Risk" if systolic > 140 or sugar > 10.0 else "Mid Risk" if systolic > 120 or sugar > 8.0 else "Low Risk"
-    
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("INSERT INTO health_checks (user_name, systolic, sugar, risk_result, check_date) VALUES (%s, %s, %s, %s, NOW())", (user_name, systolic, sugar, result))
@@ -110,4 +175,5 @@ def logout():
     session.clear()
     return redirect(url_for('login_page'))
 
-# (Keep your setup-db and register/login routes as they were)
+if __name__ == '__main__':
+    app.run(debug=True)
