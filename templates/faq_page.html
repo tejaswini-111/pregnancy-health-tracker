@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Knowledge Base{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="color:var(--pink-dark);">👩‍⚕️ Expert Knowledge Base</h2>
+    <p style="color:#666;">Ask a question or browse our medical FAQ library.</p>
+    
+    <form action="/ask_expert" method="POST" style="margin:20px 0;">
+        <div style="display:flex; gap:10px;">
+            <input type="text" name="question" placeholder="Search for symptoms, diet, or safety advice..." required 
+                   style="flex-grow:1; padding:15px; border-radius:10px; border:1px solid #ddd; outline-color:var(--google-blue);">
+            <button type="submit" style="padding:0 25px; background:var(--google-blue); color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
+                Ask AI
+            </button>
+        </div>
+    </form>
+
+    <hr style="border:0; border-top:1px solid #eee; margin:30px 0;">
+
+    <div style="max-height: 500px; overflow-y: auto;">
+        {% for faq in faqs %}
+        <div style="padding:20px; background:#fdf2f7; border-radius:15px; margin-bottom:15px; border-left:5px solid var(--pink-main);">
+            <small style="color:var(--pink-dark); font-weight:bold; text-transform:uppercase; font-size:0.75rem;">{{ faq.category }}</small>
+            <p style="margin:8px 0; font-weight:bold; font-size:1.1rem; color:#ad1457;">Q: {{ faq.question }}</p>
+            <p style="margin:0; font-size:0.95rem; color:#555; line-height:1.5;">A: {{ faq.answer }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

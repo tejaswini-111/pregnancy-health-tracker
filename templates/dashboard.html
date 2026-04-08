@@ -1,245 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Pregnancy Care</title>
-    <style>
-        :root { 
-            --pink-main: #ff69b4; 
-            --pink-dark: #ad1457; 
-            --pink-light: #fce4ec; 
-            --google-blue: #4285F4;
-        }
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
 
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f8f9fa; 
-            margin: 0; 
-            padding: 10px; 
-            color: #444; 
-        }
-
-        .container { 
-            max-width: 1100px; 
-            margin: auto; 
-            padding: 5px; 
-        }
-        
-        .header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            background: white; 
-            padding: 20px; 
-            border-radius: 15px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            margin-bottom: 20px; 
-        }
-        
-        .main-grid { 
-            display: grid; 
-            grid-template-columns: 2fr 1fr; 
-            gap: 20px; 
-        }
-
-        .top-row { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 20px; 
-            margin-bottom: 20px; 
-        }
-        
-        .card { 
-            background: white; 
-            padding: 20px; 
-            border-radius: 15px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-            border: 1px solid #eee; 
-        }
-
-        .card-title { 
-            color: var(--pink-dark); 
-            margin-top: 0; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-            border-bottom: 1px solid var(--pink-light); 
-            padding-bottom: 10px; 
-            margin-bottom: 15px; 
-            font-size: 1.2rem;
-        }
-        
-        .btn { 
-            display: inline-block; 
-            padding: 15px 20px; 
-            background: var(--pink-main); 
-            color: white; 
-            text-decoration: none; 
-            border-radius: 10px; 
-            font-weight: 600; 
-            font-size: 1rem; 
-            border: none; 
-            cursor: pointer; 
-            transition: 0.3s; 
-            text-align: center; 
-        }
-
-        .btn:hover { 
-            background: var(--pink-dark); 
-            transform: translateY(-2px); 
-        }
-
-        .btn-google { 
-            background: var(--google-blue); 
-            width: 100%; 
-        }
-
-        .input-field { 
-            width: 100%; 
-            padding: 14px; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            box-sizing: border-box; 
-            margin-bottom: 10px; 
-            outline-color: var(--pink-main); 
-            font-size: 16px; 
-        }
-
-        .progress-wrapper { 
-            background: #eee; 
-            border-radius: 20px; 
-            height: 14px; 
-            overflow: hidden; 
-            margin: 15px 0; 
-        }
-
-        .progress-fill { 
-            background: linear-gradient(90deg, #ff69b4, #ad1457); 
-            height: 100%; 
-            transition: width 1s ease-in-out; 
-        }
-
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            font-size: 0.9rem; 
-        }
-
-        th { 
-            text-align: left; 
-            padding: 12px; 
-            background: #fdf2f7; 
-            color: var(--pink-dark); 
-            border-radius: 5px; 
-        }
-
-        td { 
-            padding: 12px; 
-            border-bottom: 1px solid #eee; 
-        }
-
-        @media (max-width: 850px) { 
-            .main-grid, .top-row { grid-template-columns: 1fr; } 
-            .header { flex-direction: column; text-align: center; gap: 15px; }
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="header">
-        <div>
-            <h2 style="margin:0; color:var(--pink-dark);">Hello, {{ user_name }}!</h2>
-            <p style="margin:5px 0 0; color:#888; font-size:0.9rem;">Your Personal Pregnancy Companion</p>
-        </div>
-        <a href="/logout" style="color:#f44336; text-decoration:none; font-weight:bold; font-size:0.9rem;">Logout</a>
-    </div>
-
-    <div class="top-row">
-        <div class="card">
-            <h3 class="card-title">❤️ Health Analysis</h3>
-            <p style="font-size: 0.9rem; min-height: 40px; color:#666;">Check your risk levels using BP and Glucose diagnostics.</p>
-            <a href="/predict_page" class="btn" style="width:100%; box-sizing:border-box;">Start New Health Check</a>
-        </div>
-        <div class="card">
-            <h3 class="card-title">👶 Baby's Progress</h3>
-            <p style="font-size: 0.9rem; min-height: 40px; color:#333; font-weight: 500;">{{ upcoming_task }}</p>
-            {% if weeks > 0 %}
-                <a href="/details/{{ weeks }}" class="btn" style="width:100%; box-sizing:border-box; background:var(--pink-dark);">View Week {{ weeks }} Details</a>
-            {% else %}
-                <p style="color:#999; font-size:0.8rem;">Update your LMP below to see baby's growth.</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="card" style="margin-bottom: 20px;">
+{% block content %}
+<div class="card">
+    <h2 style="color:var(--pink-dark);">Hello, {{ user_name }}!</h2>
+    <p style="color:#666;">Welcome to your personalized pregnancy dashboard.</p>
+    
+    <div class="card" style="margin-top:20px; border: 1px solid var(--pink-light);">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 class="card-title" style="border:none; margin:0;">🗓️ Journey Timeline</h3>
+            <h3 style="margin:0; color:var(--pink-dark);">🗓️ Journey Timeline</h3>
             <span style="font-weight:bold; color:var(--pink-dark);">Week {{ weeks }} of 40</span>
         </div>
-        <div class="progress-wrapper">
-            <div class="progress-fill" style="width: {{ progress }}%;"></div>
+        <div class="progress-wrapper" style="background:#eee; border-radius:20px; height:14px; margin:15px 0; overflow:hidden;">
+            <div style="background: linear-gradient(90deg, #ff69b4, #ad1457); height:100%; width: {{ progress }}%;"></div>
         </div>
-        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#666; flex-wrap: wrap; gap: 10px;">
-            <span>Start Date: <strong>{{ start_date }}</strong></span>
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#666;">
             <span>Phase: <strong>{{ trimester }}</strong></span>
             <span>Est. Due Date: <strong>{{ due_date }}</strong></span>
         </div>
-        
-        <hr style="border:0; border-top: 1px solid #eee; margin: 20px 0;">
-        
-        <form action="/update_lmp" method="POST" style="display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
-            <label style="font-size:0.85rem; font-weight:bold;">Update LMP Date:</label>
-            <input type="date" name="lmp_date" class="input-field" style="margin:0; width:180px;" required>
-            <button type="submit" class="btn" style="padding:10px 20px; font-size:0.85rem;">Refresh Tracker</button>
-        </form>
     </div>
 
-    <div class="main-grid">
-        <div class="card">
-            <h3 class="card-title">👩‍⚕️ Expert Knowledge Base</h3>
-            <form action="/ask_expert" method="POST" style="margin-bottom:20px;">
-                <input type="text" name="question" class="input-field" placeholder="Ask about symptoms, diet, or safety..." required>
-                <button type="submit" class="btn btn-google">Ask Google Expert</button>
-            </form>
-            
-            <div style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
-                {% for faq in faqs %}
-                <div style="padding:15px; background:#fdf2f7; border-radius:10px; margin-bottom:12px; border-left:4px solid var(--pink-main);">
-                    <small style="color:var(--pink-dark); font-weight:bold; text-transform: uppercase; font-size: 0.7rem;">{{ faq.category }}</small>
-                    <p style="margin:5px 0; font-weight:600; font-size:0.95rem; color:#ad1457;">Q: {{ faq.question }}</p>
-                    <p style="margin:0; font-size:0.9rem; color:#555; line-height: 1.4;">A: {{ faq.answer }}</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="card">
-            <h3 class="card-title">📊 Health History</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Risk Level</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in history %}
-                    <tr>
-                        <td>{{ row.check_date.strftime('%d %b') if row.check_date else 'Recent' }}</td>
-                        <td style="font-weight:bold; color: {% if row.risk_result == 'High Risk' %}#cf1322{% elif row.risk_result == 'Mid Risk' %}#d46b08{% else %}#389e0d{% endif %};">
-                            {{ row.risk_result }}
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="2" style="text-align:center; color:#999; padding: 20px;">No records yet.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div style="margin-top:30px;">
+        <h3 style="color:var(--pink-dark);">Actions</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+            <a href="/predict_page" class="btn" style="background:var(--pink-main); color:white; text-decoration:none; padding:15px; border-radius:10px; text-align:center;">Check Health Risk</a>
+            <a href="/faq_page" class="btn" style="background:var(--google-blue); color:white; text-decoration:none; padding:15px; border-radius:10px; text-align:center;">Ask Expert</a>
         </div>
     </div>
+
+    <hr style="margin:30px 0; border:0; border-top:1px solid #eee;">
+    
+    <form action="/update_lmp" method="POST" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <label style="font-size:0.85rem; font-weight:bold;">Reset Timeline (LMP):</label>
+        <input type="date" name="lmp_date" required style="padding:10px; border:1px solid #ddd; border-radius:8px;">
+        <button type="submit" class="btn" style="padding:10px 20px; background:var(--pink-dark); color:white; border:none; border-radius:8px; cursor:pointer;">Update</button>
+    </form>
 </div>
-
-</body>
-</html>
+{% endblock %}
