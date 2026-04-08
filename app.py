@@ -248,8 +248,8 @@ def complete_vaccine(v_name, w_num):
     conn.close()
     return redirect(url_for('week_details', week_num=w_num))
 
-@app.route('/faq')
-def faq():
+@app.route('/faq_page')
+def faq_page():
     if 'user_name' not in session: return redirect(url_for('login_page'))
     
     medical_faqs = [
