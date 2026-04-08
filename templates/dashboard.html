@@ -1,32 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container" style="width: 100%; max-width: 900px; margin: 0 auto; padding: 20px;">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="color: var(--pink-dark);">Welcome, {{ user_name }}!</h2>
-    </div>
-    <div class="card" style="width: 100%; margin-bottom: 20px; border-top: 5px solid var(--pink-main); display: block; clear: both;">
-        <h3 style="color: var(--pink-dark);">?? Update Pregnancy Timeline</h3>
-        <form action="/update_lmp" method="POST" style="display: flex; gap: 10px;">
-            <input type="date" name="lmp_date" required style="flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
-            <button type="submit" class="btn" style="background: var(--pink-main); color: white; padding: 10px 20px; border-radius: 8px;">Update</button>
-        </form>
-    </div>
-    <div class="card" style="width: 100%; display: block; clear: both; text-align: center;">
-        <div style="background: #f0f0f0; border-radius: 20px; height: 30px; margin-bottom: 25px; overflow: hidden;">
-            <div style="width: {{ progress }}%; background: var(--pink-main); height: 100%; color: white; line-height: 30px;">{{ progress }}% Complete</div>
+<div class="container" style="width: 100%; max-width: 600px; margin: 0 auto; padding: 10px;">
+
+    <div style="background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; border-top: 8px solid var(--pink-main);">
+        
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h2 style="color: var(--pink-dark); margin: 0; font-size: 1.8rem;">Welcome, {{ user_name }}!</h2>
+            <p style="color: #888; margin-top: 5px;">Your Pregnancy Journey</p>
         </div>
-        <div style="display: flex; justify-content: space-around; padding: 20px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee; margin-bottom: 20px;">
-            <div><p>Week</p><h3>{{ weeks }}</h3></div>
-            <div><p>Trimester</p><h3>{{ trimester }}</h3></div>
-            <div><p>Due Date</p><h3>{{ due_date }}</h3></div>
+
+        <div style="margin-bottom: 30px; padding-bottom: 25px; border-bottom: 1px solid #eee;">
+            <h4 style="color: var(--pink-dark); margin-bottom: 15px;">📅 Update Timeline</h4>
+            <form action="/update_lmp" method="POST" style="display: flex; gap: 8px;">
+                <input type="date" name="lmp_date" required style="flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                <button type="submit" style="background: var(--pink-main); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">Sync</button>
+            </form>
         </div>
+
+        <div style="margin-bottom: 30px;">
+            <div style="background: #f0f0f0; border-radius: 15px; height: 25px; overflow: hidden; margin-bottom: 20px;">
+                <div style="width: {{ progress }}%; background: linear-gradient(90deg, var(--pink-light), var(--pink-main)); height: 100%; text-align: center; color: white; font-size: 12px; line-height: 25px; font-weight: bold;">
+                    {{ progress }}%
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-around; text-align: center;">
+                <div><p style="margin:0; color:#999; font-size: 0.8rem;">Week</p><h3 style="margin:0;">{{ weeks }}</h3></div>
+                <div style="border-left: 1px solid #eee; border-right: 1px solid #eee; padding: 0 20px;"><p style="margin:0; color:#999; font-size: 0.8rem;">Trimester</p><h3 style="margin:0;">{{ trimester }}</h3></div>
+                <div><p style="margin:0; color:#999; font-size: 0.8rem;">Due Date</p><h3 style="margin:0; font-size: 1rem;">{{ due_date }}</h3></div>
+            </div>
+        </div>
+
         <div style="display: flex; flex-direction: column; gap: 12px;">
-            <a href="/details/{{ weeks }}" class="btn" style="background: var(--pink-dark); color: white; padding: 15px; text-decoration: none; border-radius: 10px;">?? View Details</a>
-            <a href="/predict_page" class="btn" style="background: var(--pink-main); color: white; padding: 15px; text-decoration: none; border-radius: 10px;">?? Run Health Risk Analysis</a>
-            <a href="faq_page" class="btn" style="background: #fff; color: var(--pink-dark); border: 2px solid var(--pink-dark); width: 100%; padding: 13px; text-decoration: none; border-radius: 10px; display: block; text-align: center; font-weight: bold;">
-    🩺 Medical FAQ (Search Topics)
-</a>
-            <a href="/logout" style="color: #999; text-decoration: none; margin-top: 10px;">Logout</a>
+            <a href="/details/{{ weeks }}" style="background: var(--pink-dark); color: white; text-align: center; padding: 16px; border-radius: 12px; text-decoration: none; font-weight: bold;">🔍 View Week Details</a>
+            <a href="/predict_page" style="background: var(--pink-main); color: white; text-align: center; padding: 16px; border-radius: 12px; text-decoration: none; font-weight: bold;">❤️ Run Health Analysis</a>
+            <a href="/faq_page" style="background: #fff; color: var(--pink-dark); border: 2px solid var(--pink-dark); text-align: center; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: bold;">🩺 Medical FAQ</a>
+            
+            <a href="/logout" style="text-align: center; color: #bbb; text-decoration: none; font-size: 0.9rem; margin-top: 10px;">Logout</a>
         </div>
     </div>
 </div>
