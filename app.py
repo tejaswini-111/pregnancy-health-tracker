@@ -117,7 +117,6 @@ def login():
     return "<h1>Invalid Login! Check your email/password or try Registering again.</h1>"
 
 # --- 3. DASHBOARD ---
-
 @app.route('/dashboard')
 def dashboard():
     if 'user_name' not in session:
@@ -132,57 +131,54 @@ def dashboard():
         cursor.execute("SELECT lmp_date FROM users WHERE name = %s", (user_display_name,))
         user_data = cursor.fetchone()
         
-        # 1. Initialize Default Values
-        weeks = 0
-        progress = 0
-        trimester = "Not Started"
-        due_date = "N/A"
+        # Initializing variables
+        weeks, progress, trimester = 0, 0, "Not Started"
+        due_date, start_date = "N/A", "N/A"
         upcoming_task = "Please set your LMP date to begin tracking."
 
-        # 2. If LMP exists, calculate EVERYTHING
         if user_data and user_data['lmp_date']:
             lmp = user_data['lmp_date']
             if isinstance(lmp, str):
                 lmp = datetime.strptime(lmp, '%Y-%m-%d').date()
             
+            # Formatting Start Date for HTML
+            start_date = lmp.strftime('%B %d, %Y')
+            
             today = datetime.now().date()
             days_diff = (today - lmp).days
             
-            # Calculations
-            weeks = max(0, days_diff // 7)
+            # Logic: If LMP is in the future or way in the past, reset to 0
+            raw_weeks = max(0, days_diff // 7)
+            weeks = raw_weeks if raw_weeks <= 42 else 0 
+            
             progress = min(int((weeks / 40) * 100), 100)
             
-            # Due Date Calculation
+            # Due Date: LMP + 280 Days
             due_date_calc = lmp + timedelta(days=280)
             due_date = due_date_calc.strftime('%B %d, %Y')
             
-            # Trimester (Phase) Logic
-            if weeks == 0:
-                trimester = "Not Started"
-            elif weeks <= 12:
-                trimester = "1st Trimester"
-            elif weeks <= 26:
-                trimester = "2nd Trimester"
-            else:
-                trimester = "3rd Trimester"
+            # Phase/Trimester Logic
+            if weeks == 0: trimester = "Not Started"
+            elif weeks <= 12: trimester = "1st Trimester"
+            elif weeks <= 26: trimester = "2nd Trimester"
+            else: trimester = "3rd Trimester"
             
             upcoming_task = "Visit 'View Details' for medical advice."
 
-        # 3. Fetch History and FAQ
+        # Fetch Other Data
         cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY check_date DESC LIMIT 5", (user_display_name,))
         history = cursor.fetchall()
-        
         cursor.execute("SELECT * FROM faq LIMIT 4")
         faqs = cursor.fetchall()
 
         cursor.close()
         conn.close()
 
-        # 4. CRITICAL: Pass every single variable to the template
         return render_template('dashboard.html', 
                                user_name=user_display_name, 
+                               start_date=start_date,
                                weeks=weeks, 
-                               trimester=trimester, # This is your 'Phase'
+                               trimester=trimester, 
                                due_date=due_date, 
                                progress=progress, 
                                upcoming_task=upcoming_task, 
