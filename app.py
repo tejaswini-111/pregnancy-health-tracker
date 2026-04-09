@@ -274,6 +274,17 @@ def nutrition_page():
     if 'user_name' not in session: 
         return redirect(url_for('login_page'))
     return render_template('nutrition.html')
+@app.route('/medication_reminder')
+def medication_reminder():
+    if 'user_name' not in session: 
+        return redirect(url_for('login_page'))
+    
+    prescriptions = [
+        {"name": "Folic Acid", "dosage": "400mcg", "time": "08:00", "display_time": "08:00 AM", "instruction": "Before breakfast", "days": "Daily"},
+        {"name": "Iron Tablet", "dosage": "20mg", "time": "14:00", "display_time": "02:00 PM", "instruction": "Avoid dairy for 2 hours", "days": "Daily"},
+        {"name": "Calcium", "dosage": "500mg", "time": "20:00", "display_time": "08:00 PM", "instruction": "After dinner", "days": "Daily"}
+    ]
+    return render_template('reminders.html', prescriptions=prescriptions)
 @app.route('/login_page')
 def login_page():
     return render_template('login.html')
