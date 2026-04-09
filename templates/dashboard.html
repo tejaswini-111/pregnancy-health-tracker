@@ -15,6 +15,7 @@
             <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 40px; flex-wrap: wrap;">
                 <a href="/dashboard" style="text-decoration: none; padding: 12px 24px; background: #ad1457; color: white; border-radius: 50px; font-weight: 600; font-size: 0.9rem; box-shadow: 0 4px 15px rgba(173, 20, 87, 0.3);">🏠 Home</a>
                 <a href="/predict_page" style="text-decoration: none; padding: 12px 24px; background: white; color: #ad1457; border-radius: 50px; font-weight: 600; font-size: 0.9rem; border: 1px solid #fce4ec;">❤️ Tracker</a>
+                <a href="/nutrition_page" style="text-decoration: none; padding: 12px 24px; background: white; color: #ad1457; border-radius: 50px; font-weight: 600; font-size: 0.9rem; border: 1px solid #fce4ec;">🥗 Nutrition</a>
                 <a href="/faq_page" style="text-decoration: none; padding: 12px 24px; background: white; color: #ad1457; border-radius: 50px; font-weight: 600; font-size: 0.9rem; border: 1px solid #fce4ec;">👩‍⚕️ FAQ</a>
             </div>
 
@@ -41,7 +42,7 @@
             </form>
 
             <div style="display: flex; flex-direction: column; gap: 15px;">
-                <a href="/predict_page" class="btn-hover" style="background: linear-gradient(90deg, #ff69b4, #ad1457); color: white; text-align: center; padding: 22px; border-radius: 20px; text-decoration: none; font-weight: 800; font-size: 1.2rem; box-shadow: 0 10px 25px rgba(255, 105, 180, 0.4);">✨ Start AI Health Check</a>
+                <a href="/predict_page" style="background: linear-gradient(90deg, #ff69b4, #ad1457); color: white; text-align: center; padding: 22px; border-radius: 20px; text-decoration: none; font-weight: 800; font-size: 1.2rem; box-shadow: 0 10px 25px rgba(255, 105, 180, 0.4);">✨ Start AI Health Check</a>
                 
                 <a href="/details/{{ weeks }}" style="text-decoration: none; display: flex; align-items: center; justify-content: space-between; padding: 20px; background: #fff; border: 2px solid #fce4ec; border-radius: 20px; transition: 0.3s;">
                     <div style="text-align: left;">
@@ -61,7 +62,14 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
     
-    /* Subtle hover effect for the details card */
+    /* Hover effects for navigation and insights */
+    a[href="/nutrition_page"]:hover, 
+    a[href="/predict_page"]:not(.btn-hover):hover, 
+    a[href="/faq_page"]:hover {
+        background-color: #fdf2f8 !important;
+        border-color: #ff69b4 !important;
+    }
+
     a[href^="/details"]:hover {
         background-color: #fffafb !important;
         border-color: #ff69b4 !important;

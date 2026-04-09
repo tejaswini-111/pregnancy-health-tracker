@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; background: linear-gradient(135deg, #fff5f7 0%, #fdeff2 100%);">
+
+    <div style="width: 100%; max-width: 800px; text-align: center; margin-bottom: 30px; animation: fadeIn 0.8s ease-out;">
+        <a href="/dashboard" style="text-decoration: none; color: #ad1457; font-weight: bold; font-size: 0.9rem;">← Back to Dashboard</a>
+        <h1 style="color: #ad1457; margin: 15px 0 5px 0; font-size: 3rem; font-weight: 900; letter-spacing: -2px;">Complete Nutrition Guide</h1>
+        <p style="color: #a0a0a0; font-size: 1.1rem; max-width: 500px; margin: 0 auto;">Optimizing your diet for every stage of your journey.</p>
+    </div>
+
+    <div style="width: 100%; max-width: 800px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+
+        <div class="nutrition-card">
+            <img src="{{ url_for('static', filename='images/nutrition_trim1.png') }}" alt="1st Trimester Folate Foods" class="trim-img">
+            <div class="card-content">
+                <span class="trim-badge badge-trim1">Weeks 1–13</span>
+                <h2>Organ Foundation</h2>
+                <p>Focus on Folate (Vitamin B9) and B6 to support neural tube development and manage early pregnancy nausea. Quantity isn't key yet; quality is.</p>
+                <ul>
+                    <li>🌱 Leafy Greens (Spinach, Kale)</li>
+                    <li>🥚 Eggs (Choline for brain)</li>
+                    <li>🍋 Ginger & Citrus (Nausea relief)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="nutrition-card">
+            <img src="{{ url_for('static', filename='images/nutrition_trim2.png') }}" alt="2nd Trimester Iron & Calcium" class="trim-img">
+            <div class="card-content">
+                <span class="trim-badge badge-trim2">Weeks 14–26</span>
+                <h2>Bone & Blood Health</h2>
+                <p>The "Golden Phase." Baby's skeleton is hardening, and your blood volume expands significantly. Prioritize Calcium and Iron.</p>
+                <ul>
+                    <li>🥩 Lean Red Meat / Legumes (Iron)</li>
+                    <li>🥛 Dairy / Fortified Milk (Calcium)</li>
+                    <li>🍌 Bananas & Nuts (Magnesium)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="nutrition-card">
+            <img src="{{ url_for('static', filename='images/nutrition_trim3.png') }}" alt="3rd Trimester Fiber Foods" class="trim-img">
+            <div class="card-content">
+                <span class="trim-badge badge-trim3">Weeks 27–40+</span>
+                <h2>Energy & Preparation</h2>
+                <p>Rapid growth phase. Baby needs fuel for fat layer development. Switch to small, frequent, high-fiber, nutrient-dense meals.</p>
+                <ul>
+                    <li>🥑 Avocado & Olive Oil (Healthy Fats)</li>
+                    <li>🍐 Pears & Berries (Fiber)</li>
+                    <li>🥦 Broccoli (Vitamin K for clotting)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="nutrition-card safety-card">
+            <img src="{{ url_for('static', filename='images/nutrition_never.png') }}" alt="Food Safety Never List" class="trim-img">
+            <div class="card-content">
+                <span class="trim-badge badge-safety">CRITICAL SAFETY</span>
+                <h2>The "Never" List</h2>
+                <p>To protect your pregnancy, completely avoid these foods due to high risk of bacterial contamination or mercury.</p>
+                <ul>
+                    <li>🛑 Unpasteurized Dairy (Soft Cheeses)</li>
+                    <li>🛑 Raw Sprouts (Alfalfa, Clover)</li>
+                    <li>🛑 High-Mercury Fish (Shark, Swordfish)</li>
+                    <li>🛑 Raw/Rare Meat & Eggs</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .nutrition-card { 
+        background: white; 
+        border-radius: 30px; 
+        overflow: hidden; 
+        box-shadow: 0 15px 35px rgba(255, 105, 180, 0.1); 
+        border: 1px solid rgba(255,255,255,0.5); 
+        transition: transform 0.3s ease; 
+        animation: fadeIn 0.8s ease-out;
+    }
+    .nutrition-card:hover { transform: translateY(-5px); }
+    .safety-card { border: 2px solid #ffcccb; box-shadow: 0 15px 35px rgba(255, 0, 0, 0.1); }
+
+    .trim-img { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid #fce4ec; }
+    .card-content { padding: 25px; }
+    .card-content h2 { color: #ad1457; margin: 10px 0; font-weight: 800; font-size: 1.5rem; }
+    .card-content p { color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 15px; }
+    .card-content ul { padding-left: 20px; color: #555; font-size: 0.9rem; line-height: 1.8; }
+
+    .trim-badge { display: inline-block; padding: 5px 15px; border-radius: 50px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; }
+    .badge-trim1 { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+    .badge-trim2 { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+    .badge-trim3 { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+    .badge-safety { background: #fff1f0; color: #f5222d; border: 1px solid #ffa39e; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}

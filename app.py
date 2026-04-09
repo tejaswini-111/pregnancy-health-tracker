@@ -269,7 +269,11 @@ def faq_page():
         "Standard pregnancy vaccination schedule"
     ]
     return render_template('faq.html', questions=medical_faqs)
-
+@app.route('/nutrition_page')
+def nutrition_page():
+    if 'user_name' not in session: 
+        return redirect(url_for('login_page'))
+    return render_template('nutrition.html')
 @app.route('/login_page')
 def login_page():
     return render_template('login.html')
