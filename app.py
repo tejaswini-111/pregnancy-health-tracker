@@ -5,11 +5,11 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # Change this for production
+# Professional Tip: Use a real secret key or an environment variable
+app.secret_key = os.environ.get('SECRET_KEY', 'maternal_care_secret_2026')
 
 # --- DATABASE CONNECTION ---
 def get_db_connection():
-    # Render automatically provides DATABASE_URL in environment variables
     DATABASE_URL = os.environ.get('DATABASE_URL')
     conn = psycopg2.connect(DATABASE_URL)
     return conn
@@ -51,7 +51,7 @@ def setup_database():
         """
         cursor.execute(sql_commands)
         conn.commit()
-        return "<h1>Success! Database Tables Updated with Clinical Parameters.</h1>"
+        return "<h1>Success! Database Tables Updated.</h1>"
     except Exception as e:
         return f"<h1>Setup Error: {e}</h1>"
     finally:
@@ -119,7 +119,10 @@ def dashboard():
         lmp = user_data['lmp_date']
         start_date = lmp.strftime('%B %d, %Y')
         days_diff = (datetime.now().date() - lmp).days
-        weeks = max(0, days_diff // 7) if days_diff // 7 <= 42 else 0 
+        # Logic: Pregnancy is max 42 weeks
+        weeks = max(0, days_diff // 7)
+        if weeks > 42: weeks = 0 
+        
         progress = min(int((weeks / 40) * 100), 100)
         due_date = (lmp + timedelta(days=280)).strftime('%B %d, %Y')
         trimester = "1st Trimester" if weeks <= 12 else "2nd Trimester" if weeks <= 26 else "3rd Trimester"
@@ -135,12 +138,15 @@ def update_lmp():
     new_lmp = request.form.get('lmp_date')
     user_name = session.get('user_name')
     
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE users SET lmp_date = %s WHERE name = %s", (new_lmp, user_name))
-    conn.commit()
-    cursor.close()
-    conn.close()
+    if new_lmp:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        # Update database
+        cursor.execute("UPDATE users SET lmp_date = %s WHERE name = %s", (new_lmp, user_name))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    
     return redirect(url_for('dashboard'))
 
 @app.route('/predict_page')
@@ -160,7 +166,6 @@ def predict():
     if 'user_name' not in session: return redirect(url_for('login_page'))
     user_name = session.get('user_name')
     
-    # Capture all 6 Parameters
     systolic = int(request.form.get('systolic', 120))
     diastolic = int(request.form.get('diastolic', 80))
     sugar = float(request.form.get('sugar', 5.0))
@@ -168,18 +173,16 @@ def predict():
     heart_rate = int(request.form.get('heart_rate', 70))
     age = int(request.form.get('age', 25))
 
-    # Professional Diagnostic Logic
     if systolic >= 140 or sugar >= 10.0 or temp >= 38.0:
         result, color = "High Risk", "#cf1322"
         advice = "Urgent: Please contact your doctor. Vitals are outside safe ranges."
     elif systolic >= 130 or sugar >= 8.5 or heart_rate >= 100:
         result, color = "Mid Risk", "#d46b08"
-        advice = "Caution: Monitor your vitals closely and rest. Re-test in 2 hours."
+        advice = "Caution: Monitor your vitals closely."
     else:
         result, color = "Low Risk", "#389e0d"
-        advice = "Stable: Your vitals are looking good. Maintain your routine!"
+        advice = "Stable: Your vitals are looking good."
 
-    # Save to Database
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -188,7 +191,6 @@ def predict():
     """, (user_name, systolic, diastolic, sugar, temp, heart_rate, age, result))
     conn.commit()
 
-    # Refresh History
     cursor = conn.cursor(cursor_factory=RealDictCursor)
     cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY check_date DESC", (user_name,))
     history = cursor.fetchall()
@@ -216,9 +218,16 @@ def week_details(week_num):
         36: {"size": "Papaya", "desc": "Lungs nearly mature."},
         40: {"size": "Watermelon", "desc": "Ready for birth!"}
     }
-    info = baby_growth.get(week_num if week_num in baby_growth else (week_num // 4) * 4, {"size": "Growing", "desc": "Developing daily."})
+    # Logic to find the nearest lower key
+    sorted_keys = sorted(baby_growth.keys())
+    effective_week = 0
+    for k in sorted_keys:
+        if k <= week_num:
+            effective_week = k
+            
+    info = baby_growth.get(effective_week)
     
-    recom = "Stay hydrated and take prenatal vitamins."
+    recom = "Maintain a healthy diet and stay active."
     trimester = "1st Trimester" if week_num <= 12 else "2nd Trimester" if week_num <= 26 else "3rd Trimester"
 
     v_list = [(12, "TT 1", "Tetanus Toxoid 1"), (16, "TT 2", "Tetanus Toxoid 2"), (20, "Flu", "Flu Shot"), (28, "Tdap", "Pertussis Booster")]
@@ -251,7 +260,6 @@ def complete_vaccine(v_name, w_num):
 @app.route('/faq_page')
 def faq_page():
     if 'user_name' not in session: return redirect(url_for('login_page'))
-    
     medical_faqs = [
         "Normal blood pressure during pregnancy",
         "Safe exercises for 2nd trimester",
@@ -273,4 +281,3 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    # Version 2.0 - FAQ Route Final Sync
