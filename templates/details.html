@@ -1,3 +1,5 @@
+{% extends "base.html" %}
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,20 +14,25 @@
             --success-green: #22c55e;
             --warning-amber: #f59e0b;
         }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #fdf2f7; 
-            margin: 0; 
-            padding: 20px; 
-            color: #333;
+        
+        .details-container {
+            padding: 20px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fff5f7 0%, #fdeff2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
+
         .card { 
             background: white; 
+            width: 100%;
             max-width: 750px; 
             margin: 20px auto; 
             padding: 35px; 
-            border-radius: 25px; 
-            box-shadow: 0 15px 35px rgba(173, 20, 87, 0.1); 
+            border-radius: 35px; 
+            box-shadow: 0 25px 50px rgba(173, 20, 87, 0.1); 
+            animation: fadeIn 0.8s ease-out;
         }
         
         /* Header Section */
@@ -39,148 +46,160 @@
             font-size: 0.9rem;
             display: inline-block;
             margin-top: 10px;
+            text-transform: uppercase;
         }
 
         /* Growth Visual Section */
         .growth-card { 
             background: linear-gradient(135deg, #fff5f8 0%, #fce4ec 100%);
-            padding: 25px; 
-            border-radius: 20px; 
+            padding: 35px; 
+            border-radius: 25px; 
             margin-bottom: 30px; 
             text-align: center;
             border: 1px solid var(--pink-light);
         }
-        .growth-icon { font-size: 4.5rem; margin-bottom: 15px; display: block; }
-        .growth-title { font-size: 1.4rem; color: var(--pink-dark); margin: 0; }
-        .growth-desc { color: #666; font-style: italic; margin-top: 10px; line-height: 1.6; }
+        .growth-icon { font-size: 4.5rem; margin-bottom: 15px; display: block; filter: drop-shadow(0 10px 10px rgba(255, 105, 180, 0.2)); }
+        .growth-title { font-size: 1.6rem; color: var(--pink-dark); margin: 0; font-weight: 800; }
+        .growth-desc { color: #666; font-style: italic; margin-top: 15px; line-height: 1.6; font-size: 1.1rem; }
 
         /* Content Sections */
-        .info-section { margin-bottom: 25px; }
-        h3 { color: var(--pink-dark); border-left: 5px solid var(--pink-main); padding-left: 15px; margin-bottom: 15px; }
+        .info-section { margin-bottom: 30px; }
+        h3 { color: var(--pink-dark); border-left: 5px solid var(--pink-main); padding-left: 15px; margin-bottom: 20px; font-weight: 800; }
         
         .recom-box { 
             background: #f0fdf4; 
-            border-radius: 12px; 
-            padding: 20px; 
+            border-radius: 20px; 
+            padding: 25px; 
             color: #166534; 
             display: flex;
-            align-items: flex-start;
-            gap: 15px;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid #dcfce7;
         }
 
         /* Table Styling */
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
-        th { background: #f8f9fa; color: #666; font-weight: 600; text-align: left; padding: 15px; border-bottom: 2px solid #eee; }
-        td { padding: 15px; border-bottom: 1px solid #f0f0f0; }
+        .table-container { overflow-x: auto; border-radius: 15px; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th { background: #fafafa; color: #888; font-weight: 700; text-align: left; padding: 18px; font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 18px; border-bottom: 1px solid #f9f9f9; }
         
         /* Status Badges */
         .badge { 
-            padding: 5px 12px; 
-            border-radius: 6px; 
-            font-size: 0.75rem; 
-            font-weight: bold; 
+            padding: 6px 14px; 
+            border-radius: 8px; 
+            font-size: 0.7rem; 
+            font-weight: 800; 
             text-transform: uppercase; 
         }
         .done { background: #dcfce7; color: #166534; }
-        .pending { background: #fef3c7; color: #92400e; }
+        .pending { background: #fff7ed; color: #c2410c; }
 
         /* Buttons */
         .btn-action { 
-            background: var(--pink-main); 
+            background: var(--pink-dark); 
             color: white; 
-            padding: 8px 16px; 
+            padding: 10px 18px; 
             text-decoration: none; 
-            border-radius: 8px; 
+            border-radius: 12px; 
             font-size: 0.85rem; 
             font-weight: bold;
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            display: inline-block;
         }
-        .btn-action:hover { background: var(--pink-dark); }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(173, 20, 87, 0.2); }
+        
         .btn-back { 
             display: block; 
             text-align: center; 
-            margin-top: 30px; 
+            margin-top: 20px; 
             text-decoration: none; 
             color: var(--pink-dark); 
-            font-weight: 600; 
+            font-weight: 700; 
+            font-size: 1rem;
+            transition: 0.3s;
         }
+        .btn-back:hover { opacity: 0.7; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="header-section">
-        <h1 style="margin: 0; color: var(--pink-dark);">Week {{ week }} Analysis</h1>
-        <div class="trimester-badge">{{ trimester }}</div>
-    </div>
+<div class="details-container">
+    <div class="card">
+        <div class="header-section">
+            <h1 style="margin: 0; color: var(--pink-dark); font-weight: 900; letter-spacing: -1px;">Week {{ week }} Analysis</h1>
+            <div class="trimester-badge">{{ trimester }}</div>
+        </div>
 
-    <div class="growth-card">
-        <span class="growth-icon">
-            {% if week < 8 %} 🌱 {% elif week < 12 %} 🍓 {% elif week < 20 %} 🍋 {% elif week < 30 %} 🍐 {% else %} 👶 {% endif %}
-        </span>
-        <h2 class="growth-title">Baby is the size of a {{ info.size }}</h2>
-        <p class="growth-desc">"{{ info.desc }}"</p>
-    </div>
+        <div class="growth-card">
+            <span class="growth-icon">
+                {% if week < 4 %} 🌱 {% elif week < 8 %} 🍓 {% elif week < 14 %} 🍋 {% elif week < 24 %} 🍐 {% elif week < 34 %} 🥥 {% else %} 👶 {% endif %}
+            </span>
+            <h2 class="growth-title">Baby is the size of a {{ info.size }}</h2>
+            <p class="growth-desc">"{{ info.desc }}"</p>
+        </div>
 
-    <div class="info-section">
-        <h3>🩺 Medical Guidance</h3>
-        <div class="recom-box">
-            <span style="font-size: 1.5rem;">🍎</span>
-            <div>
-                <strong style="display: block; margin-bottom: 5px;">Nutrition & Wellness Tip:</strong>
-                {{ recom }}
+        <div class="info-section">
+            <h3>🩺 Medical Guidance</h3>
+            <div class="recom-box">
+                <span style="font-size: 2rem;">🍎</span>
+                <div>
+                    <strong style="display: block; margin-bottom: 5px; font-size: 1.1rem;">Nutrition & Wellness Tip:</strong>
+                    <span style="font-size: 1rem; line-height: 1.5;">{{ recom }}</span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="info-section">
-        <h3>💉 Vaccination Tracker</h3>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Vaccine Name</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if vaccines %}
-                        {% for v in vaccines %}
+        <div class="info-section">
+            <h3>💉 Vaccination Tracker</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
                         <tr>
-                            <td>
-                                <strong style="color: #444;">{{ v.name }}</strong><br>
-                                <small style="color: #888;">{{ v.desc }} (Recommended: Week {{ v.week }})</small>
-                            </td>
-                            <td>
-                                <span class="badge {{ v.status.lower() }}">{{ v.status }}</span>
-                            </td>
-                            <td>
-                                {% if v.status == 'Done' %}
-                                    <span style="color: var(--success-green); font-weight: bold;">✅ Completed</span>
-                                {% elif v.week == week %} 
-                                    <a href="/complete_vaccine/{{ v.name }}/{{ week }}" class="btn-action">Mark as Done</a>
-                                {% else %}
-                                    <span style="color: #999; font-style: italic; font-size: 0.85rem;">Coming Up</span>
-                                {% endif %}
-                            </td>
+                            <th>Vaccine</th>
+                            <th>Status</th>
+                            <th>Action</th>
                         </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="3" style="text-align: center; color: #999; padding: 30px;">
-                                No critical vaccinations scheduled for Week {{ week }}.
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% if vaccines %}
+                            {% for v in vaccines %}
+                            <tr>
+                                <td>
+                                    <strong style="color: #444; font-size: 1rem;">{{ v.name }}</strong><br>
+                                    <small style="color: #999;">{{ v.desc }} (Target: Week {{ v.week }})</small>
+                                </td>
+                                <td>
+                                    <span class="badge {{ v.status.lower() }}">{{ v.status }}</span>
+                                </td>
+                                <td>
+                                    {% if v.status == 'Done' %}
+                                        <span style="color: var(--success-green); font-weight: 800; font-size: 0.9rem;">✅ DONE</span>
+                                    {% elif v.week <= week %} 
+                                        <a href="/complete_vaccine/{{ v.name }}/{{ week }}" class="btn-action">Mark Done</a>
+                                    {% else %}
+                                        <span style="color: #ccc; font-style: italic; font-size: 0.8rem;">Upcoming</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: #999; padding: 40px;">
+                                    No vaccinations tracked for this period.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
 
-    <a href="/dashboard" class="btn-back">← Return to Dashboard</a>
+        <a href="/dashboard" class="btn-back">← Return to Dashboard</a>
+    </div>
 </div>
 
 </body>
 </html>
+{% endblock %}

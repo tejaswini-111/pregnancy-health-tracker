@@ -41,8 +41,17 @@
             </form>
 
             <div style="display: flex; flex-direction: column; gap: 15px;">
-                <a href="/predict_page" style="background: linear-gradient(90deg, #ff69b4, #ad1457); color: white; text-align: center; padding: 22px; border-radius: 20px; text-decoration: none; font-weight: 800; font-size: 1.2rem; box-shadow: 0 10px 25px rgba(255, 105, 180, 0.4);">✨ Start AI Health Check</a>
-                <a href="/logout" style="text-align: center; color: #ccc; text-decoration: none; font-size: 0.9rem; margin-top: 20px; font-weight: 600;">Sign Out of Dashboard</a>
+                <a href="/predict_page" class="btn-hover" style="background: linear-gradient(90deg, #ff69b4, #ad1457); color: white; text-align: center; padding: 22px; border-radius: 20px; text-decoration: none; font-weight: 800; font-size: 1.2rem; box-shadow: 0 10px 25px rgba(255, 105, 180, 0.4);">✨ Start AI Health Check</a>
+                
+                <a href="/details/{{ weeks }}" style="text-decoration: none; display: flex; align-items: center; justify-content: space-between; padding: 20px; background: #fff; border: 2px solid #fce4ec; border-radius: 20px; transition: 0.3s;">
+                    <div style="text-align: left;">
+                        <span style="display: block; color: #ad1457; font-weight: 800; font-size: 1.1rem;">🔍 Week {{ weeks }} Insights</span>
+                        <span style="color: #a0a0a0; font-size: 0.85rem; font-weight: 600;">Baby size, growth tips & vaccines</span>
+                    </div>
+                    <span style="font-size: 1.5rem; color: #ff69b4;">→</span>
+                </a>
+
+                <a href="/logout" style="text-align: center; color: #ccc; text-decoration: none; font-size: 0.9rem; margin-top: 10px; font-weight: 600;">Sign Out of Dashboard</a>
             </div>
         </div>
     </div>
@@ -51,5 +60,12 @@
 <style>
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+    
+    /* Subtle hover effect for the details card */
+    a[href^="/details"]:hover {
+        background-color: #fffafb !important;
+        border-color: #ff69b4 !important;
+        transform: scale(1.02);
+    }
 </style>
 {% endblock %}
