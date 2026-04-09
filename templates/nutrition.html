@@ -2,20 +2,19 @@
 {% block content %}
 <div style="padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; background: linear-gradient(135deg, #fff5f7 0%, #fdeff2 100%);">
 
-    <div style="width: 100%; max-width: 800px; text-align: center; margin-bottom: 30px; animation: fadeIn 0.8s ease-out;">
-        <a href="/dashboard" style="text-decoration: none; color: #ad1457; font-weight: bold; font-size: 0.9rem;">← Back to Dashboard</a>
-        <h1 style="color: #ad1457; margin: 15px 0 5px 0; font-size: 3rem; font-weight: 900; letter-spacing: -2px;">Complete Nutrition Guide</h1>
-        <p style="color: #a0a0a0; font-size: 1.1rem; max-width: 500px; margin: 0 auto;">Optimizing your diet for every stage of your journey.</p>
+    <div style="width: 100%; max-width: 800px; text-align: center; margin-bottom: 40px; animation: fadeIn 0.8s ease-out;">
+        <h1 style="color: #ad1457; margin: 0; font-size: 3rem; font-weight: 900; letter-spacing: -2px;">Complete Nutrition Guide</h1>
+        <p style="color: #a0a0a0; font-size: 1.1rem; max-width: 500px; margin: 10px auto 0 auto;">Optimizing your diet for every stage of your journey.</p>
     </div>
 
-    <div style="width: 100%; max-width: 800px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+    <div style="width: 100%; max-width: 800px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; margin-bottom: 50px;">
 
         <div class="nutrition-card">
             <img src="{{ url_for('static', filename='images/nutrition_trim1.png') }}" alt="1st Trimester Folate Foods" class="trim-img">
             <div class="card-content">
                 <span class="trim-badge badge-trim1">Weeks 1–13</span>
                 <h2>Organ Foundation</h2>
-                <p>Focus on Folate (Vitamin B9) and B6 to support neural tube development and manage early pregnancy nausea. Quantity isn't key yet; quality is.</p>
+                <p>Focus on Folate (Vitamin B9) and B6 to support neural tube development and manage early pregnancy nausea.</p>
                 <ul>
                     <li>🌱 Leafy Greens (Spinach, Kale)</li>
                     <li>🥚 Eggs (Choline for brain)</li>
@@ -29,7 +28,7 @@
             <div class="card-content">
                 <span class="trim-badge badge-trim2">Weeks 14–26</span>
                 <h2>Bone & Blood Health</h2>
-                <p>The "Golden Phase." Baby's skeleton is hardening, and your blood volume expands significantly. Prioritize Calcium and Iron.</p>
+                <p>The "Golden Phase." Baby's skeleton is hardening and blood volume expands. Prioritize Calcium and Iron.</p>
                 <ul>
                     <li>🥩 Lean Red Meat / Legumes (Iron)</li>
                     <li>🥛 Dairy / Fortified Milk (Calcium)</li>
@@ -43,7 +42,7 @@
             <div class="card-content">
                 <span class="trim-badge badge-trim3">Weeks 27–40+</span>
                 <h2>Energy & Preparation</h2>
-                <p>Rapid growth phase. Baby needs fuel for fat layer development. Switch to small, frequent, high-fiber, nutrient-dense meals.</p>
+                <p>Rapid growth phase. Baby needs fuel for fat layer development. Switch to small, frequent, nutrient-dense meals.</p>
                 <ul>
                     <li>🥑 Avocado & Olive Oil (Healthy Fats)</li>
                     <li>🍐 Pears & Berries (Fiber)</li>
@@ -57,7 +56,7 @@
             <div class="card-content">
                 <span class="trim-badge badge-safety">CRITICAL SAFETY</span>
                 <h2>The "Never" List</h2>
-                <p>To protect your pregnancy, completely avoid these foods due to high risk of bacterial contamination or mercury.</p>
+                <p>Completely avoid these foods due to high risk of bacterial contamination (Listeria) or mercury.</p>
                 <ul>
                     <li>🛑 Unpasteurized Dairy (Soft Cheeses)</li>
                     <li>🛑 Raw Sprouts (Alfalfa, Clover)</li>
@@ -68,6 +67,13 @@
         </div>
 
     </div>
+
+    <div style="text-align: center; padding: 30px 0 60px 0; width: 100%; max-width: 800px; border-top: 1px solid rgba(173, 20, 87, 0.1);">
+        <a href="/dashboard" class="btn-hover" style="display: inline-block; text-decoration: none; color: #ad1457; font-weight: 700; font-size: 1rem; padding: 14px 40px; border-radius: 50px; border: 2px solid #fce4ec; background: white; transition: 0.3s;">
+            🏠 Return to Dashboard
+        </a>
+    </div>
+
 </div>
 
 <style>
@@ -87,13 +93,19 @@
     .card-content { padding: 25px; }
     .card-content h2 { color: #ad1457; margin: 10px 0; font-weight: 800; font-size: 1.5rem; }
     .card-content p { color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 15px; }
-    .card-content ul { padding-left: 20px; color: #555; font-size: 0.9rem; line-height: 1.8; }
+    .card-content ul { padding-left: 20px; color: #555; font-size: 0.9rem; line-height: 1.8; margin: 0; }
 
     .trim-badge { display: inline-block; padding: 5px 15px; border-radius: 50px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; }
     .badge-trim1 { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
     .badge-trim2 { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
     .badge-trim3 { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
     .badge-safety { background: #fff1f0; color: #f5222d; border: 1px solid #ffa39e; }
+
+    .btn-hover:hover {
+        background-color: #fdf2f8 !important;
+        border-color: #ff69b4 !important;
+        transform: scale(1.05);
+    }
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
