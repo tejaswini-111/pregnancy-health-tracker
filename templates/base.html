@@ -5,24 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Pregnancy Care{% endblock %}</title>
     <style>
-        :root { --pink-main: #ff69b4; --pink-dark: #ad1457; --pink-light: #fce4ec; --google-blue: #4285F4; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; }
-        .nav-bar { background: white; padding: 15px; border-radius: 15px; display: flex; gap: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .nav-bar a { text-decoration: none; color: var(--pink-dark); font-weight: bold; }
-        .container { max-width: 800px; margin: auto; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .btn { display: inline-block; padding: 10px 20px; border-radius: 8px; text-decoration: none; color: white; border: none; cursor: pointer; }
+        :root { 
+            --pink-main: #ff69b4; 
+            --pink-dark: #ad1457; 
+            --pink-light: #fce4ec; 
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #fdf2f8; 
+            margin: 0; 
+            padding: 0; 
+            display: flex;
+            justify-content: center;
+        }
+        .container { 
+            width: 100%;
+            max-width: 900px; /* Increased width for a bigger look */
+            margin: 40px auto; 
+            padding: 0 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="nav-bar">
-            <a href="/dashboard">🏠 Dashboard</a>
-            <a href="/predict_page">❤️ Health Tracker</a>
-            <a href="/faq_page">👩‍⚕️ Medical FAQ</a>
-            <a href="/logout" style="margin-left:auto; color:red;">Logout</a>
-        </div>
-        
         {% block content %}{% endblock %}
     </div>
 </body>
