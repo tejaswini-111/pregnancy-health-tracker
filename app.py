@@ -118,14 +118,22 @@ def dashboard():
     if user_data and user_data['lmp_date']:
         lmp = user_data['lmp_date']
         start_date = lmp.strftime('%B %d, %Y')
-        days_diff = (datetime.now().date() - lmp).days
-        # Logic: Pregnancy is max 42 weeks
-        weeks = max(0, days_diff // 7)
-        if weeks > 42: weeks = 0 
         
-        progress = min(int((weeks / 40) * 100), 100)
-        due_date = (lmp + timedelta(days=280)).strftime('%B %d, %Y')
-        trimester = "1st Trimester" if weeks <= 12 else "2nd Trimester" if weeks <= 26 else "3rd Trimester"
+        # Ensure we are comparing date to date
+        today = datetime.now().date()
+        days_diff = (today - lmp).days
+        
+        if days_diff < 0:
+            weeks, progress, trimester = 0, 0, "Not Started"
+        else:
+            weeks = days_diff // 7
+            if weeks > 42: 
+                weeks = 0 # Or handle as "Post-term"
+            
+            # Ensure progress is calculated with floating point
+            progress = min(int((weeks / 40.0) * 100), 100)
+            due_date = (lmp + timedelta(days=280)).strftime('%B %d, %Y')
+            trimester = "1st" if weeks <= 12 else "2nd" if weeks <= 26 else "3rd"
 
     cursor.close()
     conn.close()
