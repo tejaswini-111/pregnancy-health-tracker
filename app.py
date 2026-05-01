@@ -171,44 +171,19 @@ def predict_page():
     conn.close()
     return render_template('predict.html', history=history)
 
-@app.route('/predict', methods=['POST'])
-def predict():
+@app.route('/predict_page')
+def predict_page():
     if 'user_name' not in session: return redirect(url_for('login_page'))
     user_name = session.get('user_name')
-    
-    systolic = int(request.form.get('systolic', 120))
-    diastolic = int(request.form.get('diastolic', 80))
-    sugar = float(request.form.get('sugar', 5.0))
-    temp = float(request.form.get('temp', 37.0))
-    heart_rate = int(request.form.get('heart_rate', 70))
-    age = int(request.form.get('age', 25))
-
-    if systolic >= 140 or sugar >= 10.0 or temp >= 38.0:
-        result, color = "High Risk", "#cf1322"
-        advice = "Urgent: Please contact your doctor. Vitals are outside safe ranges."
-    elif systolic >= 130 or sugar >= 8.5 or heart_rate >= 100:
-        result, color = "Mid Risk", "#d46b08"
-        advice = "Caution: Monitor your vitals closely."
-    else:
-        result, color = "Low Risk", "#389e0d"
-        advice = "Stable: Your vitals are looking good."
-
     conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO health_checks (user_name, systolic, diastolic, sugar, temp, heart_rate, age, risk_result) 
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    """, (user_name, systolic, diastolic, sugar, temp, heart_rate, age, result))
-    conn.commit()
-
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-    cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY check_date DESC", (user_name,))
+    # Using 'id' for ordering as 'check_date' might not exist in all schemas yet
+    cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY id DESC", (user_name,))
     history = cursor.fetchall()
-    
     cursor.close()
     conn.close()
+    return render_template('predict.html', history=history)
 
-    return render_template('predict.html', history=history, latest_result=result, result_color=color, advice=advice)
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'user_name' not in session: 
@@ -217,14 +192,17 @@ def predict():
     user_name = session.get('user_name')
     
     # Safely retrieve form data with defaults
-    systolic = int(request.form.get('systolic', 120))
-    diastolic = int(request.form.get('diastolic', 80))
-    sugar = float(request.form.get('sugar', 5.0))
-    temp = float(request.form.get('temp', 37.0))
-    heart_rate = int(request.form.get('heart_rate', 70))
-    age = int(request.form.get('age', 25))
+    try:
+        systolic = int(request.form.get('systolic', 120))
+        diastolic = int(request.form.get('diastolic', 80))
+        sugar = float(request.form.get('sugar', 5.0))
+        temp = float(request.form.get('temp', 37.0))
+        heart_rate = int(request.form.get('heart_rate', 70))
+        age = int(request.form.get('age', 25))
+    except ValueError:
+        return "Invalid input. Please enter numeric values.", 400
 
-    # Risk Logic (Rule-based algorithm for clinical adherence)
+    # Risk Logic
     if systolic >= 140 or sugar >= 10.0 or temp >= 38.0:
         result, color = "High Risk", "#cf1322"
         advice = "Urgent: Please contact your doctor. Vitals are outside safe ranges."
@@ -240,7 +218,6 @@ def predict():
 
     try:
         # --- SCHEMA GUARD: Ensures columns exist in PostgreSQL ---
-        # This prevents the 'UndefinedColumn' error you saw in the logs
         columns_to_check = [
             "systolic INTEGER", 
             "diastolic INTEGER", 
@@ -267,13 +244,8 @@ def predict():
         cursor.close()
 
         # --- FETCH HISTORY ---
-        # Using RealDictCursor for easier indexing in your templates
         cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute("""
-            SELECT * FROM health_checks 
-            WHERE user_name = %s 
-            ORDER BY id DESC
-        """, (user_name,))
+        cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY id DESC", (user_name,))
         history = cursor.fetchall()
         
     except Exception as e:
