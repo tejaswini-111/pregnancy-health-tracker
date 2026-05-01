@@ -159,27 +159,23 @@ def update_lmp():
             
     return redirect(url_for('dashboard')) # Redirect even if new_lmp was empty
 
-@app.route('/predict_page')
-def predict_page():
-    if 'user_name' not in session: return redirect(url_for('login_page'))
-    user_name = session.get('user_name')
-    conn = get_db_connection()
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
-    cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY check_date DESC", (user_name,))
-    history = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template('predict.html', history=history)
+
 
 @app.route('/predict_page')
 def predict_page():
-    if 'user_name' not in session: return redirect(url_for('login_page'))
+    if 'user_name' not in session: 
+        return redirect(url_for('login_page'))
+    
     user_name = session.get('user_name')
     conn = get_db_connection()
+    # Using RealDictCursor ensures your HTML templates can read the data easily
+    from psycopg2.extras import RealDictCursor
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-    # Using 'id' for ordering as 'check_date' might not exist in all schemas yet
+    
+    # Selecting history for the specific user
     cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY id DESC", (user_name,))
     history = cursor.fetchall()
+    
     cursor.close()
     conn.close()
     return render_template('predict.html', history=history)
@@ -191,7 +187,7 @@ def predict():
     
     user_name = session.get('user_name')
     
-    # Safely retrieve form data with defaults
+    # 1. Collect Form Data
     try:
         systolic = int(request.form.get('systolic', 120))
         diastolic = int(request.form.get('diastolic', 80))
@@ -199,16 +195,16 @@ def predict():
         temp = float(request.form.get('temp', 37.0))
         heart_rate = int(request.form.get('heart_rate', 70))
         age = int(request.form.get('age', 25))
-    except ValueError:
-        return "Invalid input. Please enter numeric values.", 400
+    except (ValueError, TypeError):
+        return "Invalid input. Please ensure all vitals are numbers.", 400
 
-    # Risk Logic
+    # 2. Health Risk Logic (Rule-based)
     if systolic >= 140 or sugar >= 10.0 or temp >= 38.0:
         result, color = "High Risk", "#cf1322"
-        advice = "Urgent: Please contact your doctor. Vitals are outside safe ranges."
+        advice = "Urgent: Please contact your doctor immediately."
     elif systolic >= 130 or sugar >= 8.5 or heart_rate >= 100:
         result, color = "Mid Risk", "#d46b08"
-        advice = "Caution: Monitor your vitals closely."
+        advice = "Caution: Monitor your vitals closely and rest."
     else:
         result, color = "Low Risk", "#389e0d"
         advice = "Stable: Your vitals are looking good."
@@ -217,39 +213,32 @@ def predict():
     cursor = conn.cursor()
 
     try:
-        # --- SCHEMA GUARD: Ensures columns exist in PostgreSQL ---
-        columns_to_check = [
-            "systolic INTEGER", 
-            "diastolic INTEGER", 
-            "sugar FLOAT", 
-            "temp FLOAT", 
-            "heart_rate INTEGER", 
-            "age INTEGER", 
-            "risk_result TEXT"
+        # 3. SCHEMA GUARD: Automatically adds missing columns like 'diastolic'
+        columns = [
+            "systolic INTEGER", "diastolic INTEGER", "sugar FLOAT", 
+            "temp FLOAT", "heart_rate INTEGER", "age INTEGER", "risk_result TEXT"
         ]
-        
-        for col in columns_to_check:
-            name = col.split()[0]
-            data_type = col.split()[1]
-            cursor.execute(f"ALTER TABLE health_checks ADD COLUMN IF NOT EXISTS {name} {data_type};")
-        
+        for col in columns:
+            name, dtype = col.split()
+            cursor.execute(f"ALTER TABLE health_checks ADD COLUMN IF NOT EXISTS {name} {dtype};")
         conn.commit()
 
-        # --- DATABASE INSERT ---
+        # 4. Insert the new health check
         cursor.execute("""
             INSERT INTO health_checks (user_name, systolic, diastolic, sugar, temp, heart_rate, age, risk_result) 
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """, (user_name, systolic, diastolic, sugar, temp, heart_rate, age, result))
         conn.commit()
-        cursor.close()
 
-        # --- FETCH HISTORY ---
+        # 5. Fetch updated history
+        from psycopg2.extras import RealDictCursor
+        cursor.close() # Close previous standard cursor
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("SELECT * FROM health_checks WHERE user_name = %s ORDER BY id DESC", (user_name,))
         history = cursor.fetchall()
         
     except Exception as e:
-        print(f"Error during health check: {e}")
+        print(f"Database Error: {e}")
         return f"Internal Server Error: {e}", 500
     finally:
         cursor.close()
@@ -260,7 +249,6 @@ def predict():
                            latest_result=result, 
                            result_color=color, 
                            advice=advice)
-
 @app.route('/details/<int:week_num>')
 def week_details(week_num):
     if 'user_name' not in session: return redirect(url_for('login_page'))
