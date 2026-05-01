@@ -209,6 +209,85 @@ def predict():
     conn.close()
 
     return render_template('predict.html', history=history, latest_result=result, result_color=color, advice=advice)
+@app.route('/predict', methods=['POST'])
+def predict():
+    if 'user_name' not in session: 
+        return redirect(url_for('login_page'))
+    
+    user_name = session.get('user_name')
+    
+    # Safely retrieve form data with defaults
+    systolic = int(request.form.get('systolic', 120))
+    diastolic = int(request.form.get('diastolic', 80))
+    sugar = float(request.form.get('sugar', 5.0))
+    temp = float(request.form.get('temp', 37.0))
+    heart_rate = int(request.form.get('heart_rate', 70))
+    age = int(request.form.get('age', 25))
+
+    # Risk Logic (Rule-based algorithm for clinical adherence)
+    if systolic >= 140 or sugar >= 10.0 or temp >= 38.0:
+        result, color = "High Risk", "#cf1322"
+        advice = "Urgent: Please contact your doctor. Vitals are outside safe ranges."
+    elif systolic >= 130 or sugar >= 8.5 or heart_rate >= 100:
+        result, color = "Mid Risk", "#d46b08"
+        advice = "Caution: Monitor your vitals closely."
+    else:
+        result, color = "Low Risk", "#389e0d"
+        advice = "Stable: Your vitals are looking good."
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    try:
+        # --- SCHEMA GUARD: Ensures columns exist in PostgreSQL ---
+        # This prevents the 'UndefinedColumn' error you saw in the logs
+        columns_to_check = [
+            "systolic INTEGER", 
+            "diastolic INTEGER", 
+            "sugar FLOAT", 
+            "temp FLOAT", 
+            "heart_rate INTEGER", 
+            "age INTEGER", 
+            "risk_result TEXT"
+        ]
+        
+        for col in columns_to_check:
+            name = col.split()[0]
+            data_type = col.split()[1]
+            cursor.execute(f"ALTER TABLE health_checks ADD COLUMN IF NOT EXISTS {name} {data_type};")
+        
+        conn.commit()
+
+        # --- DATABASE INSERT ---
+        cursor.execute("""
+            INSERT INTO health_checks (user_name, systolic, diastolic, sugar, temp, heart_rate, age, risk_result) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (user_name, systolic, diastolic, sugar, temp, heart_rate, age, result))
+        conn.commit()
+        cursor.close()
+
+        # --- FETCH HISTORY ---
+        # Using RealDictCursor for easier indexing in your templates
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("""
+            SELECT * FROM health_checks 
+            WHERE user_name = %s 
+            ORDER BY id DESC
+        """, (user_name,))
+        history = cursor.fetchall()
+        
+    except Exception as e:
+        print(f"Error during health check: {e}")
+        return f"Internal Server Error: {e}", 500
+    finally:
+        cursor.close()
+        conn.close()
+
+    return render_template('predict.html', 
+                           history=history, 
+                           latest_result=result, 
+                           result_color=color, 
+                           advice=advice)
 
 @app.route('/details/<int:week_num>')
 def week_details(week_num):
