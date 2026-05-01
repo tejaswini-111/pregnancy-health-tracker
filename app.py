@@ -134,20 +134,30 @@ def dashboard():
 
 @app.route('/update_lmp', methods=['POST'])
 def update_lmp():
-    if 'user_name' not in session: return redirect(url_for('login_page'))
+    if 'user_name' not in session: 
+        return redirect(url_for('login_page'))
+    
     new_lmp = request.form.get('lmp_date')
     user_name = session.get('user_name')
     
     if new_lmp:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        # Update database
-        cursor.execute("UPDATE users SET lmp_date = %s WHERE name = %s", (new_lmp, user_name))
-        conn.commit()
-        cursor.close()
-        conn.close()
-    
-    return redirect(url_for('dashboard'))
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            # Update database
+            cursor.execute("UPDATE users SET lmp_date = %s WHERE name = %s", (new_lmp, user_name))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            
+            # SUCCESS: Send them back to the dashboard to see the new 'Weeks' count
+            return redirect(url_for('dashboard'))
+            
+        except Exception as e:
+            print(f"Database error: {e}")
+            return "There was an error updating your schedule.", 500
+            
+    return redirect(url_for('dashboard')) # Redirect even if new_lmp was empty
 
 @app.route('/predict_page')
 def predict_page():
